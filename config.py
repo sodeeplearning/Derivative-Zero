@@ -12,7 +12,9 @@ class Secrets(dataclass):
 
 class DefaultAIModels(dataclass):
     ai_consult_model = "openai/gpt-4o-mini"
+    translator_model = "openai/gpt-4o-mini"
 
 
 class AIModels(dataclass):
     ai_consult_model = environ.get("AI_CONSULT_MODEL", DefaultAIModels.ai_consult_model)
+    translator_model = environ.get("TRANSLATOR_MODEL", DefaultAIModels.translator_model)

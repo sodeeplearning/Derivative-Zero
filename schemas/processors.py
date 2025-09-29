@@ -8,3 +8,7 @@ class TextModel(BaseModel):
 class AIConsulterInputModel(BaseModel):
     context: str
     question: str
+
+
+class TranslatorInputModel(TextModel):
+    target_language: str

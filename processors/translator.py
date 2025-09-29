@@ -2,26 +2,19 @@ from aiohttp import ClientSession
 
 from .base import AbstractRemoteProcessor
 
-from schemas.processors import AIConsulterInputModel, TextModel
+from schemas.processors import TranslatorInputModel, TextModel
 from config import AIModels
 
 
-class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
-    def __init__(self, max_output_tokens: int = 4096):
+class TranslatorProcessor(AbstractRemoteProcessor):
+    def __init__(self):
         super().__init__()
 
-        self.max_output_tokens = max_output_tokens
+        self.model_name = AIModels.translator_model
 
-        self.model_name = AIModels.ai_consult_model
+        self.system_prompt = """You are a translator. Your task - translate text to target language."""
 
-        self.system_prompt = """You are a science consulter.
-        Your task - answer student's question about some studying text.
-        You will be provided some piece of text that student is reading right now in the context.
-        You need to make 100% correct answer on his question. 
-        You can use text from context or your own knowledge.
-        """
-
-    def __make_request_body(self, context: str, question: str):
+    def __make_request_body(self, text: str, target_language: str):
         messages = [
             {
                 "role": "system",
@@ -37,7 +30,7 @@ class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
                 "content": [
                     {
                         "type": "text",
-                        "text": f"Context: {context}. Student's question: {question}"
+                        "text": f"Translate this text to {target_language}: {text}"
                     }
                 ]
             }
@@ -45,13 +38,12 @@ class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
         return {
             "model": self.model_name,
             "messages": messages,
-            "max_tokens": self.max_output_tokens,
         }
 
-    async def __call__(self, body: AIConsulterInputModel) -> TextModel:
+    async def __call__(self, body: TranslatorInputModel) -> TextModel:
         json_body = self.__make_request_body(
-            context=body.context,
-            question=body.question,
+            text=body.text,
+            target_language=body.target_language,
         )
 
         async with ClientSession() as session:
