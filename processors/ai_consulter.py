@@ -3,16 +3,16 @@ from aiohttp import ClientSession
 from .base import AbstractRemoteProcessor
 
 from schemas.processors import AIConsulterInputModel, TextModel
-from config import AIModels
+import config
 
 
 class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
-    def __init__(self, max_output_tokens: int = 4096):
+    def __init__(self):
         super().__init__()
 
-        self.max_output_tokens = max_output_tokens
+        self.max_output_tokens = config.Constants.ai_consulter_max_output_tokens
 
-        self.model_name = AIModels.ai_consult_model
+        self.model_name = config.AIModels.ai_consult_model
 
         self.system_prompt = """You are a science consulter.
         Your task - answer student's question about some studying text.

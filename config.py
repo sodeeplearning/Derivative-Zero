@@ -18,3 +18,7 @@ class DefaultAIModels(dataclass):
 class AIModels(dataclass):
     ai_consult_model = environ.get("AI_CONSULT_MODEL", DefaultAIModels.ai_consult_model)
     translator_model = environ.get("TRANSLATOR_MODEL", DefaultAIModels.translator_model)
+
+
+class Constants(dataclass):
+    ai_consulter_max_output_tokens = 8192
