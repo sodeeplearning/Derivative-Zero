@@ -21,7 +21,7 @@ class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
         You can use text from context or your own knowledge.
         """
 
-    def __make_request_body(self, context: str, question: str):
+    def __make_request_body(self, body: AIConsulterInputModel):
         messages = [
             {
                 "role": "system",
@@ -37,11 +37,19 @@ class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
                 "content": [
                     {
                         "type": "text",
-                        "text": f"Context: {context}. Student's question: {question}"
+                        "text": f"Context: {body.context}. Student's question: {body.question}"
                     }
                 ]
             }
         ]
+        for image in body.images:
+            messages[1]["content"].append(
+                {
+                    "type": "image_url",
+                    "image_url": image,
+                }
+            )
+
         return {
             "model": self.model_name,
             "messages": messages,
@@ -49,10 +57,7 @@ class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
         }
 
     async def __call__(self, body: AIConsulterInputModel) -> TextModel:
-        json_body = self.__make_request_body(
-            context=body.context,
-            question=body.question,
-        )
+        json_body = self.__make_request_body(body=body)
 
         async with ClientSession() as session:
             async with session.post(self.base_url, headers=self.headers, json=json_body) as response:
