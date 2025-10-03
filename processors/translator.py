@@ -1,8 +1,10 @@
 from aiohttp import ClientSession
 
+import config
 from .base import AbstractRemoteProcessor
 
 from schemas.processors import TranslatorInputModel, TextModel
+from errors.api import incorrect_api_provider
 from config import AIModels
 
 
@@ -35,19 +37,41 @@ class TranslatorProcessor(AbstractRemoteProcessor):
                 ]
             }
         ]
+        match config.Modes.api_provider:
+            case "openrouter":
+                request_body = {
+                    "model": self.model_name,
+                    "messages": messages,
+                    "max_tokens": config.Constants.translator_max_output_tokens,
+                }
+                url = config.Links.openrouter_handler
+            case "yandex":
+                request_body = {
+                    "modelUri": f"gpt://{config.Secrets.yandex_folder_id}/yandexgpt/latest",
+                    "completionOptions": {
+                        "stream": False,
+                        "maxTokens": config.Constants.translator_max_output_tokens,
+                    },
+                    "messages": messages,
+                }
+                url = config.Links.yandex_ai_handler
+            case _:
+                raise incorrect_api_provider
+
         return {
-            "model": self.model_name,
-            "messages": messages,
+            "url": url,
+            "headers": self.headers,
+            "json": request_body,
         }
 
     async def __call__(self, body: TranslatorInputModel) -> TextModel:
-        json_body = self.__make_request_body(
+        request_body = self.__make_request_body(
             text=body.text,
             target_language=body.target_language,
         )
 
         async with ClientSession() as session:
-            async with session.post(self.base_url, headers=self.headers, json=json_body) as response:
+            async with session.post(**request_body) as response:
                 response.raise_for_status()
                 data = await response.json()
                 message = data["choices"][0]["message"]["content"]

@@ -3,15 +3,13 @@ from aiohttp import ClientSession
 from .base import AbstractRemoteProcessor
 
 from schemas.processors import AIConsulterInputModel, TextModel
+from errors.api import incorrect_api_provider
 import config
 
 
 class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
     def __init__(self):
         super().__init__()
-
-        self.max_output_tokens = config.Constants.ai_consulter_max_output_tokens
-
         self.model_name = config.AIModels.ai_consult_model
 
         self.system_prompt = """You are a science consulter.
@@ -21,7 +19,7 @@ class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
         You can use text from context or your own knowledge.
         """
 
-    def __make_request_body(self, body: AIConsulterInputModel):
+    def __make_request_body(self, body: AIConsulterInputModel) -> dict:
         messages = [
             {
                 "role": "system",
@@ -50,17 +48,39 @@ class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
                 }
             )
 
+        match config.Modes.api_provider:
+            case "openrouter":
+                request_body = {
+                    "model": self.model_name,
+                    "messages": messages,
+                    "max_tokens": config.Constants.ai_consulter_max_output_tokens,
+                }
+                url = config.Links.openrouter_handler
+
+            case "yandex":
+                request_body = {
+                    "modelUri": f"gpt://{config.Secrets.yandex_folder_id}/yandexgpt/latest",
+                    "completionOptions": {
+                        "stream": False,
+                        "maxTokens": config.Constants.ai_consulter_max_output_tokens,
+                    },
+                    "messages": messages,
+                }
+                url = config.Links.yandex_ai_handler
+            case _:
+                raise incorrect_api_provider
+
         return {
-            "model": self.model_name,
-            "messages": messages,
-            "max_tokens": self.max_output_tokens,
+            "url": url,
+            "headers": self.headers,
+            "json": request_body,
         }
 
     async def __call__(self, body: AIConsulterInputModel) -> TextModel:
-        json_body = self.__make_request_body(body=body)
+        request_body = self.__make_request_body(body=body)
 
         async with ClientSession() as session:
-            async with session.post(self.base_url, headers=self.headers, json=json_body) as response:
+            async with session.post(**request_body) as response:
                 response.raise_for_status()
                 data = await response.json()
                 message = data["choices"][0]["message"]["content"]
