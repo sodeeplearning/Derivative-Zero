@@ -2,7 +2,7 @@ from aiohttp import ClientSession
 
 from .base import AbstractRemoteProcessor
 
-from schemas.processors import AIConsulterInputModel, TextModel
+from schemas.processors import AIConsulterInputModel, AIConsulterOutputModel
 from errors.api import incorrect_api_provider
 import config
 
@@ -76,7 +76,7 @@ class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
             "json": request_body,
         }
 
-    async def __call__(self, body: AIConsulterInputModel) -> TextModel:
+    async def __call__(self, body: AIConsulterInputModel) -> AIConsulterOutputModel:
         request_body = self.__make_request_body(body=body)
 
         async with ClientSession() as session:
@@ -85,4 +85,4 @@ class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
                 data = await response.json()
                 message = data["choices"][0]["message"]["content"]
 
-        return TextModel(text=message)
+        return AIConsulterOutputModel(text=message)

@@ -1,10 +1,8 @@
-from typing import Optional, List
+from typing import Optional, List, Any
 
 from pydantic import BaseModel
 
-
-class TextModel(BaseModel):
-    text: str
+from .base import TextModel
 
 
 class AIConsulterInputModel(BaseModel):
@@ -13,5 +11,13 @@ class AIConsulterInputModel(BaseModel):
     images: Optional[List[str]]
 
 
+class AIConsulterOutputModel(TextModel):
+    ...
+
+
 class TranslatorInputModel(TextModel):
     target_language: str
+
+
+class TranslatorOutputModel(TextModel):
+    ...

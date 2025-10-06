@@ -3,7 +3,7 @@ from aiohttp import ClientSession
 import config
 from .base import AbstractRemoteProcessor
 
-from schemas.processors import TranslatorInputModel, TextModel
+from schemas.processors import TranslatorInputModel, TranslatorOutputModel
 from errors.api import incorrect_api_provider
 from config import AIModels
 
@@ -64,7 +64,7 @@ class TranslatorProcessor(AbstractRemoteProcessor):
             "json": request_body,
         }
 
-    async def __call__(self, body: TranslatorInputModel) -> TextModel:
+    async def __call__(self, body: TranslatorInputModel) -> TranslatorOutputModel:
         request_body = self.__make_request_body(
             text=body.text,
             target_language=body.target_language,
@@ -76,4 +76,4 @@ class TranslatorProcessor(AbstractRemoteProcessor):
                 data = await response.json()
                 message = data["choices"][0]["message"]["content"]
 
-        return TextModel(text=message)
+        return TranslatorOutputModel(text=message)
