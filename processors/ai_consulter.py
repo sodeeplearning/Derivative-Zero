@@ -41,7 +41,7 @@ class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
             }
         ]
 
-        if config.Modes.api_provider != "yandex":
+        if config.Modes.api_provider in ["openrouter"]:
             for image in body.images:
                 messages[1]["content"].append(
                     {
