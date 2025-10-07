@@ -40,13 +40,15 @@ class AsyncAIConsulterProcessor(AbstractRemoteProcessor):
                 ]
             }
         ]
-        for image in body.images:
-            messages[1]["content"].append(
-                {
-                    "type": "image_url",
-                    "image_url": image,
-                }
-            )
+
+        if config.Modes.api_provider != "yandex":
+            for image in body.images:
+                messages[1]["content"].append(
+                    {
+                        "type": "image_url",
+                        "image_url": image,
+                    }
+                )
 
         match config.Modes.api_provider:
             case "openrouter":
