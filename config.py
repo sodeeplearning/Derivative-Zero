@@ -15,6 +15,7 @@ class Modes:
 class Links:
     yandex_ai_handler = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
     openrouter_handler = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
+    tts_yandex = "https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize"
 
 
 @dataclass
