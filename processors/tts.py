@@ -1,9 +1,9 @@
 from aiohttp import ClientSession
-import base64
 
 from .base import AbstractRemoteProcessor
 
 from schemas.processors import TTSInputModel, TTSOutputModel
+from utils.audio_processing import encode_audio_to_b64_string
 import config
 
 
@@ -27,10 +27,6 @@ class AsyncTextToSpeechModel(AbstractRemoteProcessor):
             "stream": True,
         }
 
-    @staticmethod
-    def postprocess_content(content: bytes):
-        return base64.b64encode(content).decode("utf-8")
-
     async def __call__(self, body: TTSInputModel) -> TTSOutputModel:
         request_data = self.__make_request_body(body=body)
 
@@ -39,7 +35,7 @@ class AsyncTextToSpeechModel(AbstractRemoteProcessor):
                 response.raise_for_status()
 
         response_content = await response.read()
-        audio_base64 = self.postprocess_content(response_content)
+        audio_base64 = encode_audio_to_b64_string(response_content)
 
         return TTSOutputModel(
             audio_base64=audio_base64,
