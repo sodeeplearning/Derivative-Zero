@@ -11,4 +11,4 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "translator_service/main.py"]
+CMD ["uvicorn", "-m", "translator_service/main:app"]

@@ -11,4 +11,4 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "tts_service/main.py"]
+CMD ["uvicorn", "-m", "tts_service/main:app"]

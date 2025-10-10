@@ -1,0 +1,25 @@
+services:
+  nginx:
+    image: nginx:latest
+    restart: unless-stopped
+    ports:
+      - "21489:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  ai-consulter:
+    build:
+      context: ./
+      dockerfile: ai_consulter_service/Dockerfile
+    restart: unless-stopped
+
+  translator:
+    build:
+      context: ./
+      dockerfile: translator_service/Dockerfile
+    restart: unless-stopped
+
+  tts:
+    build:
+      context: ./
+      dockerfile: tts_service/Dockerfile
+    restart: unless-stopped
