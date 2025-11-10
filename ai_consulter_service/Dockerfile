@@ -11,4 +11,4 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["uvicorn", "-m", "ai_consulter_service/main:app"]
+CMD ["uvicorn", "ai_consulter_service.main:app"]

@@ -33,7 +33,3 @@ class AbstractRemoteProcessor(BaseAbstractProcessor):
     @abstractmethod
     def __call__(self, *args, **kwargs):
         ...
-
-    @abstractmethod
-    def __make_request_body(self, *args, **kwargs):
-        ...
