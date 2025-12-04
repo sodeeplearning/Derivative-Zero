@@ -13,3 +13,8 @@ processor = AsyncAIConsulterProcessor()
 async def process_ai_consulter_request(body: AIConsulterInputModel) -> AIConsulterOutputModel:
     result = await processor(body=body)
     return result
+
+
+@app.get("/")
+async def test_request():
+    return {"status": "success"}
