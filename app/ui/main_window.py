@@ -16,6 +16,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("AI PDF Reader")
+        self.resize(1200, 700)
 
         self.books = load_books()
         self.pdf = None
@@ -23,6 +24,8 @@ class MainWindow(QMainWindow):
         self.book_list = QListWidget()
         self.book_list.addItems(self.books)
         self.book_list.itemClicked.connect(self.open_book)
+        self.book_list.setMinimumWidth(150)
+        self.book_list.setMaximumWidth(300)
 
         self.pdf_label = QLabel("Откройте PDF")
         self.pdf_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -44,11 +47,15 @@ class MainWindow(QMainWindow):
             on_send=self.ask_ai,
             on_url_change=self.update_ai_url
         )
+        self.chat.setMinimumWidth(300)
+        self.chat.setMaximumWidth(420)
 
         splitter = QSplitter()
         splitter.addWidget(self.book_list)
         splitter.addWidget(self.viewer)
         splitter.addWidget(self.chat)
+
+        splitter.setSizes([200, 700, 300])
 
         self.setCentralWidget(splitter)
 
