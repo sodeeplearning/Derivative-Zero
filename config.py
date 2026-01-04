@@ -13,8 +13,8 @@ class Modes:
 
 @dataclass
 class Links:
+    openrouter_handler = environ.get("OPENROUTER_HANDLER", "https://api.proxyapi.ru/openrouter/v1/chat/completions")
     yandex_ai_handler = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
-    openrouter_handler = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
     tts_yandex = "https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize"
 
 
