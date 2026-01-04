@@ -53,8 +53,10 @@ class ChatWidget(QWidget):
         if not msg:
             return
 
-        self.chat.append(f"<b>Вы:</b> {msg}")
+        self.chat.append(f"<b>Вы:</b> {msg}<br><br>")
         self.input.clear()
 
         answer = self.on_send(msg)
-        self.chat.append(f"<b>ИИ:</b> {answer}")
+        self.chat.append(f"<b>ИИ:</b> {answer}<br><br>")
+
+        self.chat.verticalScrollBar().setValue(self.chat.verticalScrollBar().maximum())
