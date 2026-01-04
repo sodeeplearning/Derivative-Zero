@@ -1,20 +1,15 @@
 from fastapi import FastAPI
 
 from schemas.processors import AIConsulterInputModel, AIConsulterOutputModel
-from processors.ai_consulter import AsyncAIConsulterProcessor
+from processors.ai_consulter import AIConsulterProcessor
 
 
-app = FastAPI()
+app = FastAPI(root_path="/ai-consulter")
 
-processor = AsyncAIConsulterProcessor()
+processor = AIConsulterProcessor()
 
 
-@app.post("/ai_consulter")
-async def process_ai_consulter_request(body: AIConsulterInputModel) -> AIConsulterOutputModel:
-    result = await processor(body=body)
+@app.post("/sync")
+def process_ai_consulter_request(body: AIConsulterInputModel) -> AIConsulterOutputModel:
+    result = processor(body=body)
     return result
-
-
-@app.get("/")
-async def test_request():
-    return {"status": "success"}

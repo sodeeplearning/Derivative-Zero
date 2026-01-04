@@ -8,7 +8,7 @@ load_dotenv()
 
 @dataclass
 class Modes:
-    api_provider: Literal["yandex", "openrouter"] = environ.get("API_PROVIDER", "yandex")
+    api_provider: Literal["yandex", "openrouter"] = environ.get("API_PROVIDER", "openrouter")
 
 
 @dataclass
