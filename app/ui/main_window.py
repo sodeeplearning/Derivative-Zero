@@ -15,7 +15,7 @@ from ui.pdf_viewer import PdfViewer
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("AI PDF Reader")
+        self.setWindowTitle("Derivative Zero")
         self.resize(1200, 700)
 
         self.books = load_books()
