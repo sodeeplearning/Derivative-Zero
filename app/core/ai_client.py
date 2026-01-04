@@ -1,0 +1,49 @@
+import requests
+import base64
+
+
+class AIClientError(Exception):
+    ...
+
+
+class AIClient:
+    def __init__(self, url):
+        self.url = url
+
+    def ask(self, page_text, images, question):
+        payload = {
+            "context": page_text,
+            "question": question,
+            "images": [
+                base64.b64encode(img).decode()
+                for img in images
+            ]
+        }
+
+        try:
+            response = requests.post(
+                self.url,
+                json=payload,
+                timeout=30
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            return data["text"]
+
+        except requests.exceptions.Timeout:
+            raise AIClientError("⏱ Сервер не отвечает (timeout)")
+
+        except requests.exceptions.ConnectionError:
+            raise AIClientError("🔌 Не удалось подключиться к серверу")
+
+        except requests.exceptions.HTTPError as e:
+            raise AIClientError(
+                f"❌ Ошибка сервера: {e.response.status_code}"
+            )
+
+        except ValueError:
+            raise AIClientError("📄 Сервер вернул не JSON")
+
+        except Exception as e:
+            raise AIClientError(f"💥 Неизвестная ошибка: {e}")
