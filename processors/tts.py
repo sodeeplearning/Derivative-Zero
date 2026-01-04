@@ -1,17 +1,18 @@
 from aiohttp import ClientSession
 
-from .base import AbstractRemoteProcessor
+from .base import BaseAbstractProcessor
 
 from schemas.processors import TTSInputModel, TTSOutputModel
 from utils.audio_processing import encode_audio_to_b64_string
 import config
 
 
-class AsyncTextToSpeechModel(AbstractRemoteProcessor):
+class AsyncTextToSpeechModel(BaseAbstractProcessor):
     def __init__(self):
         super().__init__()
 
-    def __make_request_body(self, body: TTSInputModel) -> dict:
+    @staticmethod
+    def __make_request_body(body: TTSInputModel) -> dict:
         data = {
             "text": body.text,
             "lang": "ru-RU",
@@ -22,7 +23,10 @@ class AsyncTextToSpeechModel(AbstractRemoteProcessor):
         }
         return {
             "url": config.Links.tts_yandex,
-            "headers": self.headers_mapping["yandex"],
+            "headers": {
+                "Authorization": f"Bearer {config.Secrets.yandex_api_key}",
+                "Content-Type": "application/json"
+            },
             "data": data,
             "stream": True,
         }

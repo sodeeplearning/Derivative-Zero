@@ -1,14 +1,9 @@
 from dataclasses import dataclass
 from os import environ
 from dotenv import load_dotenv
-from typing import Literal
+
 
 load_dotenv()
-
-
-@dataclass
-class Modes:
-    api_provider: Literal["yandex", "openrouter"] = environ.get("API_PROVIDER", "openrouter")
 
 
 @dataclass
@@ -20,27 +15,9 @@ class Links:
 
 @dataclass
 class Secrets:
-    openrouter_api_key = environ.get("OPENROUTER_API_KEY")
-    yandex_api_key = environ.get("YANDEX_API_KEY")
-    yandex_folder_id = environ.get("YANDEX_FOLDER_ID")
-
-    def __post_init__(self):
-        missing_field = None
-
-        match Modes.api_provider:
-            case "yandex":
-                if not self.yandex_api_key:
-                    missing_field = "YANDEX_API_KEY"
-                if not self.yandex_folder_id:
-                    missing_field = "YANDEX_FOLDER_ID"
-
-            case "openrouter":
-                if not self.openrouter_api_key:
-                    missing_field = "OPENROUTER_API_KEY"
-
-        if missing_field:
-            raise ValueError(f"""You've chosen provider '{Modes.api_provider}'
-             but didn't provide '{missing_field}' in .env file""")
+    openrouter_api_key = environ["OPENROUTER_API_KEY"]
+    yandex_api_key = environ["YANDEX_API_KEY"]
+    yandex_folder_id = environ["YANDEX_FOLDER_ID"]
 
 
 @dataclass
