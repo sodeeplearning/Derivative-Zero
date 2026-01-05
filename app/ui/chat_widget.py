@@ -1,17 +1,38 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QTextEdit, QLineEdit, QPushButton, QLabel, QHBoxLayout
+    QWidget, QVBoxLayout, QTextEdit, QLineEdit, QPushButton, QLabel, QHBoxLayout,
 )
-from PyQt6.QtCore import QSettings, Qt
-from PyQt6.QtGui import QFont
+from PyQt6.QtCore import QSettings, Qt, QThread, pyqtSignal, QObject
+from PyQt6.QtGui import QFont, QTextCursor
+
+
+class SendWorker(QObject):
+    finished = pyqtSignal(str)
+    error = pyqtSignal(str)
+
+    def __init__(self, on_send, msg):
+        super().__init__()
+        self.on_send = on_send
+        self.msg = msg
+
+    def run(self):
+        try:
+            answer = self.on_send(self.msg)
+            self.finished.emit(answer)
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 class ChatWidget(QWidget):
     def __init__(self, on_send, on_url_change):
         super().__init__()
+        self.thinking_cursor_pos = None
+        self.worker = None
+        self.thread = None
+
         self.on_send = on_send
         self.on_url_change = on_url_change
         self.settings = QSettings("ai_pdf_reader", "config")
-        self.font_size = 14
+        self.font_size = 12
 
         main_layout = QVBoxLayout(self)
 
@@ -53,6 +74,8 @@ class ChatWidget(QWidget):
         main_layout.addWidget(self.input)
         main_layout.addWidget(self.send_btn)
 
+        self.update_font()
+
     def save_url(self):
         url = self.url_input.text().strip()
         if url:
@@ -73,6 +96,32 @@ class ChatWidget(QWidget):
         font.setPointSize(self.font_size)
         self.chat.setFont(font)
 
+    def scroll_to_bottom(self):
+        self.chat.verticalScrollBar().setValue(
+            self.chat.verticalScrollBar().maximum()
+        )
+
+    def remove_thinking_text(self):
+        cursor = self.chat.textCursor()
+        cursor.setPosition(self.thinking_cursor_pos)
+        cursor.movePosition(
+            QTextCursor.MoveOperation.End,
+            QTextCursor.MoveMode.KeepAnchor
+        )
+        cursor.removeSelectedText()
+
+    def on_ai_answer(self, answer):
+        self.remove_thinking_text()
+        self.chat.append(f"<b>ИИ:</b> {answer}<br><br>")
+        self.send_btn.setEnabled(True)
+        self.scroll_to_bottom()
+
+    def on_ai_error(self, error):
+        self.remove_thinking_text()
+        self.chat.append(f"<b>Ошибка:</b> {error}<br><br>")
+        self.send_btn.setEnabled(True)
+        self.scroll_to_bottom()
+
     def send(self):
         msg = self.input.text().strip()
         if not msg:
@@ -81,7 +130,24 @@ class ChatWidget(QWidget):
         self.chat.append(f"<b>Вы:</b> {msg}<br><br>")
         self.input.clear()
 
-        answer = self.on_send(msg)
-        self.chat.append(f"<b>ИИ:</b> {answer}<br><br>")
+        self.send_btn.setEnabled(False)
 
-        self.chat.verticalScrollBar().setValue(self.chat.verticalScrollBar().maximum())
+        cursor = self.chat.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+        self.thinking_cursor_pos = cursor.position()
+
+        self.chat.insertHtml("<i>ИИ думает...</i><br><br>")
+
+        self.thread = QThread()
+        self.worker = SendWorker(self.on_send, msg)
+        self.worker.moveToThread(self.thread)
+
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.on_ai_answer)
+        self.worker.error.connect(self.on_ai_error)
+
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+
+        self.thread.start()
