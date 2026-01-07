@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import (
-    QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton
+    QWidget, QLabel, QVBoxLayout, QHBoxLayout,
+    QPushButton, QScrollArea
 )
-from PyQt6.QtGui import QImage, QPixmap
+from PyQt6.QtGui import QImage, QPixmap, QPalette
 from PyQt6.QtCore import Qt, pyqtSignal
 
 
@@ -10,11 +11,9 @@ class PdfViewer(QWidget):
 
     def __init__(self):
         super().__init__()
+
         self.pdf = None
         self.zoom = 1.0
-
-        self.image_label = QLabel("PDF не загружен")
-        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.prev_btn = QPushButton("◀")
         self.next_btn = QPushButton("▶")
@@ -28,9 +27,25 @@ class PdfViewer(QWidget):
         nav.addWidget(self.zoom_out_btn)
         nav.addWidget(self.zoom_in_btn)
 
+        self.image_label = QLabel("PDF не загружен")
+        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.image_label.setBackgroundRole(QPalette.ColorRole.Base)
+
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setWidget(self.image_label)
+        self.scroll.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.scroll.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAsNeeded
+        )
+        self.scroll.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAsNeeded
+        )
+
         layout = QVBoxLayout(self)
         layout.addLayout(nav)
-        layout.addWidget(self.image_label)
+        layout.addWidget(self.scroll)
 
         self.prev_btn.clicked.connect(self.prev_page)
         self.next_btn.clicked.connect(self.next_page)
@@ -57,6 +72,8 @@ class PdfViewer(QWidget):
         )
 
         self.image_label.setPixmap(QPixmap.fromImage(img))
+        self.image_label.adjustSize()
+
         self.page_changed.emit(self.pdf.page_index)
 
     def next_page(self):
@@ -70,9 +87,9 @@ class PdfViewer(QWidget):
             self.render()
 
     def zoom_in(self):
-        self.zoom *= 1.2
+        self.zoom *= 1.1
         self.render()
 
     def zoom_out(self):
-        self.zoom /= 1.2
+        self.zoom /= 1.1
         self.render()

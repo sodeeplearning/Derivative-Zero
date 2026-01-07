@@ -24,7 +24,7 @@ class AIClient:
             response = requests.post(
                 self.url + "/ai-consulter/sync",
                 json=payload,
-                timeout=30
+                timeout=120,
             )
             response.raise_for_status()
             data = response.json()
@@ -55,6 +55,7 @@ class AIClient:
         try:
             response = requests.delete(
                 self.url + "/ai-consulter/clear_chat_history",
+                timeout=40,
             )
             response.raise_for_status()
 
