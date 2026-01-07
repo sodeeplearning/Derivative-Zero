@@ -1,6 +1,8 @@
+import os
+
 from PyQt6.QtWidgets import (
     QMainWindow, QFileDialog, QListWidget,
-    QSplitter, QLabel
+    QSplitter, QLabel, QListWidgetItem,
 )
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtCore import Qt, QSettings
@@ -22,7 +24,9 @@ class MainWindow(QMainWindow):
         self.pdf = None
 
         self.book_list = QListWidget()
-        self.book_list.addItems(self.books)
+        for path in self.books:
+            self.add_book_item(path)
+
         self.book_list.itemClicked.connect(self.open_book)
         self.book_list.setMinimumWidth(200)
         self.book_list.setMaximumWidth(500)
@@ -64,6 +68,21 @@ class MainWindow(QMainWindow):
 
         self.menuBar().addAction("Открыть PDF", self.load_pdf)
 
+    def add_book_item(self, path: str):
+        name = os.path.basename(path)
+
+        same_names = [
+            p for p in self.books
+            if os.path.basename(p) == name
+        ]
+
+        display_text = name if len(same_names) == 1 else path
+
+        item = QListWidgetItem(display_text)
+        item.setData(Qt.ItemDataRole.UserRole, path)
+
+        self.book_list.addItem(item)
+
     def update_ai_url(self, url: str):
         self.ai.url = url
 
@@ -73,11 +92,13 @@ class MainWindow(QMainWindow):
             if path not in self.books:
                 self.books.append(path)
                 save_books(self.books)
-                self.book_list.addItem(path)
+                self.add_book_item(path)
+
             self.open_pdf(path)
 
     def open_book(self, item):
-        self.open_pdf(item.text())
+        path = item.data(Qt.ItemDataRole.UserRole)
+        self.open_pdf(path)
 
     def open_pdf(self, path):
         self.pdf = PdfController(path)
