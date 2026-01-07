@@ -3,8 +3,9 @@ import os
 from PyQt6.QtWidgets import (
     QMainWindow, QFileDialog, QListWidget,
     QSplitter, QLabel, QListWidgetItem,
+    QPushButton, QVBoxLayout, QWidget,
 )
-from PyQt6.QtGui import QImage, QPixmap
+from PyQt6.QtGui import QImage, QPixmap, QFont
 from PyQt6.QtCore import Qt, QSettings
 
 from core.pdf_controller import PdfController
@@ -23,6 +24,13 @@ class MainWindow(QMainWindow):
         self.books = load_books()
         self.pdf = None
 
+        books_title = QLabel("📚 Книги")
+        title_font = QFont()
+        title_font.setPointSize(18)
+        title_font.setBold(True)
+        books_title.setFont(title_font)
+        books_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
         self.book_list = QListWidget()
         for path in self.books:
             self.add_book_item(path)
@@ -30,6 +38,17 @@ class MainWindow(QMainWindow):
         self.book_list.itemClicked.connect(self.open_book)
         self.book_list.setMinimumWidth(200)
         self.book_list.setMaximumWidth(500)
+
+        self.remove_book_btn = QPushButton("Удалить из списка")
+        self.remove_book_btn.clicked.connect(self.remove_selected_book)
+
+        books_layout = QVBoxLayout()
+        books_layout.addWidget(books_title)
+        books_layout.addWidget(self.book_list)
+        books_layout.addWidget(self.remove_book_btn)
+
+        books_widget = QWidget()
+        books_widget.setLayout(books_layout)
 
         self.pdf_label = QLabel("Откройте PDF")
         self.pdf_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -58,7 +77,7 @@ class MainWindow(QMainWindow):
         self.chat.setMaximumWidth(420)
 
         splitter = QSplitter()
-        splitter.addWidget(self.book_list)
+        splitter.addWidget(books_widget)
         splitter.addWidget(self.viewer)
         splitter.addWidget(self.chat)
 
@@ -80,8 +99,26 @@ class MainWindow(QMainWindow):
 
         item = QListWidgetItem(display_text)
         item.setData(Qt.ItemDataRole.UserRole, path)
+        item.setToolTip(path)
 
         self.book_list.addItem(item)
+
+    def remove_selected_book(self):
+        item = self.book_list.currentItem()
+        if not item:
+            return
+
+        path = item.data(Qt.ItemDataRole.UserRole)
+
+        self.books = [p for p in self.books if p != path]
+        save_books(self.books)
+
+        row = self.book_list.row(item)
+        self.book_list.takeItem(row)
+
+        if self.pdf and self.pdf.path == path:
+            self.pdf = None
+            self.viewer.image_label.setText("Откройте PDF")
 
     def update_ai_url(self, url: str):
         self.ai.url = url

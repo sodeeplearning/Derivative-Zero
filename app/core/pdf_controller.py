@@ -3,6 +3,7 @@ import fitz
 
 class PdfController:
     def __init__(self, path):
+        self.path = path
         self.doc = fitz.open(path)
         self.page_index = 0
 
