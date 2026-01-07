@@ -87,6 +87,19 @@ class MainWindow(QMainWindow):
 
         self.menuBar().addAction("Открыть PDF", self.load_pdf)
 
+        self.settings = QSettings("ai_pdf_reader", "window")
+
+        if self.settings.value("geometry"):
+            self.restoreGeometry(self.settings.value("geometry"))
+
+        if self.settings.value("windowState"):
+            self.restoreState(self.settings.value("windowState"))
+
+    def closeEvent(self, event):
+        self.settings.setValue("geometry", self.saveGeometry())
+        self.settings.setValue("windowState", self.saveState())
+        super().closeEvent(event)
+
     def add_book_item(self, path: str):
         name = os.path.basename(path)
 
