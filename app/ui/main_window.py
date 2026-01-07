@@ -33,6 +33,8 @@ class MainWindow(QMainWindow):
         self.ai = AIClient("http://127.0.0.1:21489")
 
         self.viewer = PdfViewer()
+        self.viewer.setMinimumWidth(900)
+        self.viewer.setMinimumHeight(850)
 
         self.settings = QSettings("ai_pdf_reader", "config")
 
@@ -79,7 +81,7 @@ class MainWindow(QMainWindow):
 
     def open_pdf(self, path):
         self.pdf = PdfController(path)
-        self.viewer.set_document(self.pdf)
+        self.viewer.set_document(self.pdf, doc_id=path)
 
     def render_page(self):
         pix = self.pdf.render_page()
