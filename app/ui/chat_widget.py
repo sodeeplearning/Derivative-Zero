@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QTextEdit, QLineEdit, QPushButton, QLabel, QHBoxLayout,
+    QWidget, QVBoxLayout, QLineEdit, QPushButton, QLabel, QHBoxLayout, QTextBrowser
 )
 from PyQt6.QtCore import QSettings, Qt, QThread, pyqtSignal, QObject
 from PyQt6.QtGui import QFont, QTextCursor
@@ -69,7 +69,7 @@ class ChatWidget(QWidget):
         self.increase_btn.clicked.connect(self.increase_font)
         self.decrease_btn.clicked.connect(self.decrease_font)
 
-        self.chat = QTextEdit()
+        self.chat = QTextBrowser()
         self.chat.setReadOnly(True)
         self.chat.setFontPointSize(self.font_size)
         main_layout.addWidget(self.chat)
@@ -118,7 +118,7 @@ class ChatWidget(QWidget):
 
     def on_ai_answer(self, answer):
         self.remove_thinking_text()
-        self.chat.append(f"<b>ИИ:</b> {answer}<br><br>")
+        self.chat.append(f"<b>🤖 ИИ:</b> {answer}<br><br>")
         self.send_btn.setEnabled(True)
         self.scroll_to_bottom()
 

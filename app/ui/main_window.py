@@ -95,6 +95,8 @@ class MainWindow(QMainWindow):
         if self.settings.value("windowState"):
             self.restoreState(self.settings.value("windowState"))
 
+        self.clear_chat_history()
+
     def closeEvent(self, event):
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("windowState", self.saveState())

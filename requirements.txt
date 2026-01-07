@@ -5,3 +5,5 @@ aiohttp~=3.12.15
 fastapi
 uvicorn
 openai
+markdown
+pymdown-extensions

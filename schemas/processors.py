@@ -9,6 +9,7 @@ class AIConsulterInputModel(BaseModel):
     context: str
     question: str
     images: Optional[List[str]]
+    convert_to_html: Optional[bool] = Field(default=True)
 
 
 class AIConsulterOutputModel(TextModel):
