@@ -23,8 +23,7 @@ class AIConsulterProcessor(BaseAbstractProcessor):
         You can use text from context or your own knowledge.
         """
 
-    def __call__(self, body: AIConsulterInputModel) -> AIConsulterOutputModel:
-        messages = [
+        self.chat_history = [
             {
                 "role": "system",
                 "content": [
@@ -34,18 +33,23 @@ class AIConsulterProcessor(BaseAbstractProcessor):
                     }
                 ]
             },
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": f"Context: {body.context}. Student's question: {body.question}"
-                    }
-                ]
-            }
         ]
+
+    def clear_chat_history(self):
+        self.chat_history.clear()
+
+    def __call__(self, body: AIConsulterInputModel) -> AIConsulterOutputModel:
+        user_message = {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Context: {body.context}. Student's question: {body.question}"
+                }
+            ]
+        }
         for image in body.images:
-            messages[1]["content"].append(
+            user_message["content"].append(
                 {
                     "type": "image_url",
                     "image_url": {
@@ -54,9 +58,11 @@ class AIConsulterProcessor(BaseAbstractProcessor):
                 }
             )
 
+        self.chat_history.append(user_message)
+
         chat_completion = self.client.chat.completions.create(
             model=self.model_name,
-            messages=messages,
+            messages=self.chat_history,
         )
         output = chat_completion.choices[0].message.content
 
