@@ -15,7 +15,13 @@ def process_ai_consulter_request(body: AIConsulterInputModel) -> AIConsulterOutp
     return result
 
 
-@app.head("/clear_chat_history")
+@app.delete("/clear_chat_history")
 async def clear_ai_assistant_chat_history():
     processor.clear_chat_history()
+    return Response(status_code=200)
+
+
+@app.post("/set_chat_history")
+async def set_ai_assistant_chat_history(new_chat_history):
+    processor.set_chat_history(new_chat_history)
     return Response(status_code=200)

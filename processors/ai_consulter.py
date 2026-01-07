@@ -38,6 +38,9 @@ class AIConsulterProcessor(BaseAbstractProcessor):
     def clear_chat_history(self):
         self.chat_history.clear()
 
+    def set_chat_history(self, new_chat_history):
+        self.chat_history = new_chat_history
+
     def __call__(self, body: AIConsulterInputModel) -> AIConsulterOutputModel:
         user_message = {
             "role": "user",
@@ -65,6 +68,17 @@ class AIConsulterProcessor(BaseAbstractProcessor):
             messages=self.chat_history,
         )
         output = chat_completion.choices[0].message.content
+
+        ai_message = {
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "text",
+                    "text": output,
+                }
+            ]
+        }
+        self.chat_history.append(ai_message)
 
         return AIConsulterOutputModel(
             text=output,

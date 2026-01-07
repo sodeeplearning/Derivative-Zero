@@ -23,7 +23,7 @@ class SendWorker(QObject):
 
 
 class ChatWidget(QWidget):
-    def __init__(self, on_send, on_url_change):
+    def __init__(self, on_send, on_url_change, on_clear_chat):
         super().__init__()
         self.thinking_cursor_pos = None
         self.worker = None
@@ -31,6 +31,8 @@ class ChatWidget(QWidget):
 
         self.on_send = on_send
         self.on_url_change = on_url_change
+        self.on_clear_chat = on_clear_chat
+
         self.settings = QSettings("ai_pdf_reader", "config")
         self.font_size = 12
 
@@ -46,7 +48,7 @@ class ChatWidget(QWidget):
 
         main_layout.addWidget(QLabel("AI endpoint URL:"))
         self.url_input = QLineEdit()
-        saved_url = self.settings.value("ai_url", "http://localhost:8000/ai_consulter")
+        saved_url = self.settings.value("ai_url", "http://127.0.0.1:21489")
         self.url_input.setText(saved_url)
         self.url_input.editingFinished.connect(self.save_url)
         main_layout.addWidget(self.url_input)
@@ -59,6 +61,10 @@ class ChatWidget(QWidget):
         font_layout.addWidget(self.decrease_btn)
         font_layout.addStretch()
         main_layout.addLayout(font_layout)
+
+        self.clear_btn = QPushButton("Очистить чат")
+        self.clear_btn.clicked.connect(self.clear_chat)
+        main_layout.addWidget(self.clear_btn)
 
         self.increase_btn.clicked.connect(self.increase_font)
         self.decrease_btn.clicked.connect(self.decrease_font)
@@ -121,6 +127,13 @@ class ChatWidget(QWidget):
         self.chat.append(f"<b>Ошибка:</b> {error}<br><br>")
         self.send_btn.setEnabled(True)
         self.scroll_to_bottom()
+
+    def clear_chat(self):
+        try:
+            self.on_clear_chat()
+            self.chat.clear()
+        except Exception as e:
+            self.chat.append(f"<b>Ошибка:</b> {e}<br><br>")
 
     def send(self):
         msg = self.input.text().strip()

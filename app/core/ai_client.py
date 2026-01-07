@@ -22,7 +22,7 @@ class AIClient:
 
         try:
             response = requests.post(
-                self.url,
+                self.url + "/ai-consulter/sync",
                 json=payload,
                 timeout=30
             )
@@ -44,6 +44,25 @@ class AIClient:
 
         except ValueError:
             raise AIClientError("📄 Сервер вернул не JSON")
+
+        except Exception as e:
+            raise AIClientError(f"💥 Неизвестная ошибка: {e}")
+
+    def set_url(self, url):
+        self.url = url
+
+    def clear_chat_history(self):
+        try:
+            response = requests.delete(
+                self.url + "/ai-consulter/clear_chat_history",
+            )
+            response.raise_for_status()
+
+        except requests.exceptions.Timeout:
+            raise AIClientError("⏱ Сервер не отвечает (timeout)")
+
+        except requests.exceptions.ConnectionError:
+            raise AIClientError("🔌 Не удалось подключиться к серверу")
 
         except Exception as e:
             raise AIClientError(f"💥 Неизвестная ошибка: {e}")

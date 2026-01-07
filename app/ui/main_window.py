@@ -24,13 +24,13 @@ class MainWindow(QMainWindow):
         self.book_list = QListWidget()
         self.book_list.addItems(self.books)
         self.book_list.itemClicked.connect(self.open_book)
-        self.book_list.setMinimumWidth(150)
-        self.book_list.setMaximumWidth(300)
+        self.book_list.setMinimumWidth(200)
+        self.book_list.setMaximumWidth(500)
 
         self.pdf_label = QLabel("Откройте PDF")
         self.pdf_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.ai = AIClient("http://127.0.0.1:21489/ai-consulter/sync")
+        self.ai = AIClient("http://127.0.0.1:21489")
 
         self.viewer = PdfViewer()
 
@@ -38,14 +38,15 @@ class MainWindow(QMainWindow):
 
         ai_url = self.settings.value(
             "ai_url",
-            "http://127.0.0.1:21489/ai-consulter/sync"
+            "http://127.0.0.1:21489"
         )
 
         self.ai = AIClient(ai_url)
 
         self.chat = ChatWidget(
             on_send=self.ask_ai,
-            on_url_change=self.update_ai_url
+            on_url_change=self.update_ai_url,
+            on_clear_chat=self.clear_chat_history,
         )
         self.chat.setMinimumWidth(300)
         self.chat.setMaximumWidth(420)
@@ -87,6 +88,9 @@ class MainWindow(QMainWindow):
             pix.stride, QImage.Format.Format_RGB888
         )
         self.pdf_label.setPixmap(QPixmap.fromImage(img))
+
+    def clear_chat_history(self):
+        self.ai.clear_chat_history()
 
     def ask_ai(self, question):
         if not self.pdf:
