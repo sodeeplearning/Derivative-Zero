@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
             self.add_book_item(path)
 
         self.book_list.itemClicked.connect(self.open_book)
-        self.book_list.setMinimumWidth(200)
+        self.book_list.setMinimumWidth(120)
         self.book_list.setMaximumWidth(500)
 
         self.remove_book_btn = QPushButton("Удалить из списка")
@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
         self.ai = AIClient("http://127.0.0.1:21489")
 
         self.viewer = PdfViewer()
-        self.viewer.setMinimumWidth(500)
+        self.viewer.setMinimumWidth(600)
         self.viewer.setMinimumHeight(500)
 
         self.settings = QSettings("ai_pdf_reader", "config")
@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
             on_url_change=self.update_ai_url,
             on_clear_chat=self.clear_chat_history,
         )
-        self.chat.setMinimumWidth(300)
+        self.chat.setMinimumWidth(200)
         self.chat.setMaximumWidth(420)
 
         splitter = QSplitter()

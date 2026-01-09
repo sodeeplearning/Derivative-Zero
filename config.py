@@ -8,7 +8,7 @@ load_dotenv()
 
 @dataclass
 class Links:
-    openrouter_handler = environ.get("OPENROUTER_HANDLER", "https://api.proxyapi.ru/openrouter/v1/chat/completions")
+    openrouter_handler = environ.get("OPENROUTER_HANDLER", "https://api.proxyapi.ru/openai/v1")
     yandex_ai_handler = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
     tts_yandex = "https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize"
 
@@ -22,8 +22,8 @@ class Secrets:
 
 @dataclass
 class DefaultAIModels:
-    ai_consult_model = "openai/gpt-4o-mini"
-    translator_model = "openai/gpt-4o-mini"
+    ai_consult_model = "gpt-5-nano"
+    translator_model = "gpt-5-nano"
 
 
 @dataclass
