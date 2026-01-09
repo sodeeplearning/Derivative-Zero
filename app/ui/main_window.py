@@ -42,8 +42,13 @@ class MainWindow(QMainWindow):
         self.remove_book_btn = QPushButton("Удалить из списка")
         self.remove_book_btn.clicked.connect(self.remove_selected_book)
 
+        self.menuBar().addAction("Открыть PDF", self.load_pdf)
+        self.open_pdf_btn = QPushButton("Открыть PDF")
+        self.open_pdf_btn.clicked.connect(self.load_pdf)
+
         books_layout = QVBoxLayout()
         books_layout.addWidget(books_title)
+        books_layout.addWidget(self.open_pdf_btn)
         books_layout.addWidget(self.book_list)
         books_layout.addWidget(self.remove_book_btn)
 
