@@ -56,8 +56,8 @@ class MainWindow(QMainWindow):
         self.ai = AIClient("http://127.0.0.1:21489")
 
         self.viewer = PdfViewer()
-        self.viewer.setMinimumWidth(900)
-        self.viewer.setMinimumHeight(850)
+        self.viewer.setMinimumWidth(500)
+        self.viewer.setMinimumHeight(500)
 
         self.settings = QSettings("ai_pdf_reader", "config")
 
