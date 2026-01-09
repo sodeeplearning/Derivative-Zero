@@ -24,12 +24,14 @@ class Secrets:
 class DefaultAIModels:
     ai_consult_model = "gpt-5-nano"
     translator_model = "gpt-5-nano"
+    tts_mllm = "gpt-4o-mini-tts"
 
 
 @dataclass
 class AIModels:
     ai_consult_model = environ.get("AI_CONSULT_MODEL", DefaultAIModels.ai_consult_model)
     translator_model = environ.get("TRANSLATOR_MODEL", DefaultAIModels.translator_model)
+    tts_mllm = environ.get("TTS_MLLM", DefaultAIModels.tts_mllm)
 
 
 @dataclass
