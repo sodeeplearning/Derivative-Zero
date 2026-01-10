@@ -42,7 +42,6 @@ class MainWindow(QMainWindow):
         self.remove_book_btn = QPushButton("Удалить из списка")
         self.remove_book_btn.clicked.connect(self.remove_selected_book)
 
-        self.menuBar().addAction("Открыть PDF", self.load_pdf)
         self.open_pdf_btn = QPushButton("Открыть PDF")
         self.open_pdf_btn.clicked.connect(self.load_pdf)
 
@@ -89,8 +88,6 @@ class MainWindow(QMainWindow):
         splitter.setSizes([200, 700, 300])
 
         self.setCentralWidget(splitter)
-
-        self.menuBar().addAction("Открыть PDF", self.load_pdf)
 
         self.settings = QSettings("ai_pdf_reader", "window")
 
