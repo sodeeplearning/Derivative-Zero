@@ -18,6 +18,9 @@ class PdfController:
     def get_page_text(self):
         return self.doc[self.page_index].get_text()
 
+    def get_certain_page_text(self, page: int):
+        return self.doc[page].get_text()
+
     def get_page_images(self):
         page = self.doc[self.page_index]
         images = []
@@ -26,3 +29,12 @@ class PdfController:
             base = self.doc.extract_image(xref)
             images.append(base["image"])
         return images
+
+    def get_all_text(self, split_by_page: bool = False):
+        texts = []
+        for i in range(self.page_count()):
+            texts.append(self.get_certain_page_text(i))
+        if not split_by_page:
+            texts = "\n\n".join(texts)
+        return texts
+
