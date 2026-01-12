@@ -24,9 +24,11 @@ class TranslatorOutputModel(TextModel):
     ...
 
 
-class TTSInputModel(TextModel):
-    voice: Literal["male", "female"] = Field(default="male")
+class TTSInputModel(BaseModel):
+    texts: List[str]
+    voice: str
+    tts_provider: Literal["yandex", "openai"]
 
 
 class TTSOutputModel(BaseModel):
-    audio_base64: str
+    audio_base64: list[str]

@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 
-from processors.tts import AsyncTextToSpeechModel
+from processors.tts import TTSPipelineProcessor
 from schemas.processors import TTSInputModel, TTSOutputModel
 
 
 app = FastAPI(root_path="/tts")
 
-processor = AsyncTextToSpeechModel()
+processor = TTSPipelineProcessor()
 
 
 @app.post("/async")

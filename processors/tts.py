@@ -1,8 +1,7 @@
+import asyncio
 from aiohttp import ClientSession
-import base64
-from io import BytesIO
 
-from openai import OpenAI
+from openai import AsyncClient
 
 from .base import BaseAbstractProcessor
 
@@ -16,14 +15,15 @@ class AsyncTextToSpeechModel(BaseAbstractProcessor):
         super().__init__()
 
     @staticmethod
-    def __make_request_body(body: TTSInputModel) -> dict:
+    def __make_request_body(text: str, voice: str) -> dict:
         data = {
-            "text": body.text,
+            "text": text,
             "lang": "ru-RU",
-            "voice": "filipp" if body.voice == "male" else "masha",
+            "voice": "filipp" if voice == "male" else "masha",
             "folderId": config.Secrets.yandex_folder_id,
             "format": "lpcm",
             "sampleRateHertz": 48_000,
+            "stream": True
         }
         return {
             "url": config.Links.tts_yandex,
@@ -32,27 +32,35 @@ class AsyncTextToSpeechModel(BaseAbstractProcessor):
                 "Content-Type": "application/json"
             },
             "data": data,
-            "stream": True,
         }
 
-    async def __call__(self, body: TTSInputModel) -> TTSOutputModel:
-        request_data = self.__make_request_body(body=body)
+    async def __single_request(self, text: str, voice: str = "coral"):
+        request_data = self.__make_request_body(text=text, voice=voice)
 
         async with ClientSession() as session:
             async with session.post(**request_data) as response:
                 response.raise_for_status()
-
         response_content = await response.read()
         audio_base64 = encode_audio_to_b64_string(response_content)
 
+        return audio_base64
+
+    async def __call__(self, body: TTSInputModel) -> TTSOutputModel:
+        async with asyncio.TaskGroup() as task_group:
+            tasks = [
+                task_group.create_task(self.__single_request(text=text, voice=body.voice))
+                for text in body.texts
+            ]
+        text_results = [task.result() for task in tasks]
+
         return TTSOutputModel(
-            audio_base64=audio_base64,
+            audio_base64=text_results,
         )
 
 
-class TextToSpeechMMLM(BaseAbstractProcessor):
+class AsyncTextToSpeechMMLM(BaseAbstractProcessor):
     def __init__(self):
-        self.client = OpenAI(
+        self.client = AsyncClient(
             base_url=config.Links.openrouter_handler,
             api_key=config.Secrets.openrouter_api_key,
         )
@@ -62,19 +70,39 @@ class TextToSpeechMMLM(BaseAbstractProcessor):
         text (e.g. study book) to your students. Student gives you text of this book.
         Your task - make a speech version of the text."""
 
-    def __call__(self, body: TTSInputModel) -> TTSOutputModel:
-        with self.client.audio.speech.with_streaming_response.create(
-            input=body.text,
-            voice="coral",
+    async def __single_request(self, text: str, voice: str = "coral") -> str:
+        response = await self.client.audio.speech.with_raw_response.create(
+            input=text,
+            voice=voice,
             instructions=self.system_prompt,
             model=self.model_name,
-        ) as response:
+        )
+        audio_base64 = encode_audio_to_b64_string(response.content)
+        return audio_base64
 
-            buffer = BytesIO()
-            response.stream_to_file(buffer)
-            audio_bytes = buffer.getvalue()
-            audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
+    async def __call__(self, body: TTSInputModel) -> TTSOutputModel:
+        async with asyncio.TaskGroup() as task_group:
+            tasks = [
+                task_group.create_task(self.__single_request(text=text, voice=body.voice))
+                for text in body.texts
+            ]
+        text_results = [task.result() for task in tasks]
 
         return TTSOutputModel(
-            audio_base64=audio_base64,
+            audio_base64=text_results,
         )
+
+
+class TTSPipelineProcessor:
+    def __init__(self):
+        self.openai_tts = AsyncTextToSpeechMMLM()
+        self.yandex_tts = AsyncTextToSpeechModel()
+
+    async def __call__(self, body: TTSInputModel) -> TTSOutputModel:
+        match body.tts_provider:
+            case "yandex":
+                return await self.yandex_tts(body=body)
+            case "openai":
+                return await self.openai_tts(body=body)
+            case _:
+                raise ValueError(f"Incorrect TTS provider: {body.tts_provider}")

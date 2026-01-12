@@ -67,3 +67,6 @@ class AIClient:
 
         except Exception as e:
             raise AIClientError(f"💥 Неизвестная ошибка: {e}")
+
+    def get_speech(self, texts: list[str]):
+        pass
