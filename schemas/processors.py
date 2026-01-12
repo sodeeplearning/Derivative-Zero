@@ -1,4 +1,4 @@
-from typing import Optional, List, Literal
+from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
@@ -27,7 +27,6 @@ class TranslatorOutputModel(TextModel):
 class TTSInputModel(BaseModel):
     texts: List[str]
     voice: str
-    tts_provider: Literal["yandex", "openai"]
 
 
 class TTSOutputModel(BaseModel):
