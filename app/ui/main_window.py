@@ -3,7 +3,7 @@ import os
 from PyQt6.QtWidgets import (
     QMainWindow, QFileDialog, QListWidget,
     QSplitter, QLabel, QListWidgetItem,
-    QPushButton, QVBoxLayout, QWidget,
+    QPushButton, QVBoxLayout, QWidget, QDialog,
 )
 from PyQt6.QtGui import QImage, QPixmap, QFont
 from PyQt6.QtCore import Qt, QSettings
@@ -11,6 +11,8 @@ from PyQt6.QtCore import Qt, QSettings
 from core.pdf_controller import PdfController
 from core.ai_client import AIClient, AIClientError
 from core.storage import load_books, save_books
+
+from ui.audio_export_dialog import AudioWorker, AudioProgressDialog, AudioExportDialog
 from ui.chat_widget import ChatWidget
 from ui.pdf_viewer import PdfViewer
 
@@ -18,6 +20,9 @@ from ui.pdf_viewer import PdfViewer
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.audio_worker = None
+        self.audio_progress_dialog = None
+
         self.setWindowTitle("Derivative Zero")
         self.resize(1200, 700)
 
@@ -45,9 +50,13 @@ class MainWindow(QMainWindow):
         self.open_pdf_btn = QPushButton("Открыть PDF")
         self.open_pdf_btn.clicked.connect(self.load_pdf)
 
+        self.make_audio_btn = QPushButton("Сделать аудио-версию")
+        self.make_audio_btn.clicked.connect(self.make_audio)
+
         books_layout = QVBoxLayout()
         books_layout.addWidget(books_title)
         books_layout.addWidget(self.open_pdf_btn)
+        books_layout.addWidget(self.make_audio_btn)
         books_layout.addWidget(self.book_list)
         books_layout.addWidget(self.remove_book_btn)
 
@@ -182,3 +191,39 @@ class MainWindow(QMainWindow):
 
         except AIClientError as e:
             return f"<span style='color:red'>{e}</span>"
+
+    def make_audio(self):
+        if not self.pdf:
+            return
+
+        dialog = AudioExportDialog(self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        opts = dialog.get_options()
+        if not opts["path"] or not opts["archive_name"]:
+            return
+
+        try:
+            self.audio_progress_dialog = AudioProgressDialog(self)
+            self.audio_progress_dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
+            self.audio_progress_dialog.label.setText("Ваша аудиокнига скоро будет готова...")
+            self.audio_worker = AudioWorker(self.ai, self.pdf, opts)
+        except Exception as e:
+            print("Ошибка при создании AudioProgressDialog:", e)
+
+        def on_finished():
+            print("AudioWorker finished signal received")
+            self.audio_progress_dialog.label.setText("✅ Ваша аудиокнига готова!")
+
+        def on_error(e):
+            self.audio_progress_dialog.label.setText(f"❌ Ошибка: {e}")
+            self.audio_progress_dialog.progress.setRange(0, 1)
+            self.audio_progress_dialog.progress.setValue(1)
+            print("Ошибка при генерации аудио:", e)
+
+        self.audio_worker.finished.connect(on_finished)
+        self.audio_worker.error.connect(on_error)
+        self.audio_worker.start()
+        self.audio_progress_dialog.show()
+

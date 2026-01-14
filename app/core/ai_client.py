@@ -72,7 +72,6 @@ class AIClient:
             self,
             texts: str | list[str],
             voice: str = "coral",
-            provider: Literal["openai", "yandex"] = "openai",
     ) -> str:
         if isinstance(texts, str):
             texts = [texts]
@@ -80,7 +79,6 @@ class AIClient:
         payload = {
             "texts": texts,
             "voice": voice,
-            "tts_provider": provider,
         }
         try:
             response = requests.post(

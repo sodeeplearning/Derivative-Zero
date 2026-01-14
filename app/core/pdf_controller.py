@@ -37,4 +37,3 @@ class PdfController:
         if not split_by_page:
             texts = "\n\n".join(texts)
         return texts
-
