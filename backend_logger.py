@@ -1,3 +1,5 @@
+from functools import wraps
+
 from fastapi import HTTPException
 from loguru import logger
 from threading import get_native_id
@@ -19,7 +21,30 @@ class BackendLogger:
             "thread_id": get_native_id(),
         }
 
-    def handler_logger(self, service_name: str):
+    def sync_handler_logger(self, service_name: str):
+        def wrapper_creator(func: Callable):
+            def wrapper(*args, **kwargs):
+                self.info(f"Received task to {service_name}")
+                start = time()
+
+                try:
+                    result = func(*args, **kwargs)
+                except Exception as e:
+                    error_text = f"{service_name} task complete with error: {e}"
+                    logger.bind(**self.get_kwargs()).exception(
+                        f"{service_name} task failed:"
+                    )
+                    raise HTTPException(500, error_text)
+
+                execution_time = time() - start
+                self.info(f"{service_name} task complete for {execution_time} seconds")
+                return result
+
+            return wrapper
+
+        return wrapper_creator
+
+    def async_handler_logger(self, service_name: str):
         def wrapper_creator(func: Callable):
             async def wrapper(*args, **kwargs):
                 self.info(f"Received task to {service_name}")
