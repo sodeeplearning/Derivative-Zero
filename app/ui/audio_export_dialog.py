@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (
     QLabel, QLineEdit, QPushButton,
     QFileDialog, QRadioButton, QButtonGroup, QComboBox
 )
-from PyQt6.QtWidgets import  QProgressBar, QApplication
+from PyQt6.QtWidgets import  QProgressBar
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 
 
