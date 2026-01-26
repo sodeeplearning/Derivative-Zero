@@ -1,6 +1,6 @@
 import requests
 import base64
-from typing import Literal
+import warnings
 
 
 class AIClientError(Exception):
@@ -50,6 +50,15 @@ class AIClient:
 
     def set_url(self, url):
         self.url = url
+
+    def clear_chat_history_no_exceptions(self):
+        try:
+            requests.delete(
+                self.url + "/ai-consulter/clear_chat_history",
+                timeout=40,
+            )
+        except Exception as e:
+            warnings.warn(f"Trying to update chat history caused error: {e}")
 
     def clear_chat_history(self):
         try:

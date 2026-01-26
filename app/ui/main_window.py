@@ -66,7 +66,7 @@ class MainWindow(QMainWindow):
         self.pdf_label = QLabel("Откройте PDF")
         self.pdf_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.ai = AIClient("http://127.0.0.1:21489")
+        self.ai: AIClient = AIClient("http://127.0.0.1:21489")
 
         self.viewer = PdfViewer()
         self.viewer.setMinimumWidth(600)
@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
         self.chat = ChatWidget(
             on_send=self.ask_ai,
             on_url_change=self.update_ai_url,
-            on_clear_chat=self.clear_chat_history,
+            on_clear_chat=self.ai.clear_chat_history,
         )
         self.chat.setMinimumWidth(200)
         self.chat.setMaximumWidth(420)
@@ -106,7 +106,7 @@ class MainWindow(QMainWindow):
         if self.settings.value("windowState"):
             self.restoreState(self.settings.value("windowState"))
 
-        self.clear_chat_history()
+        self.ai.clear_chat_history_no_exceptions()
 
     def closeEvent(self, event):
         self.settings.setValue("geometry", self.saveGeometry())
@@ -174,9 +174,6 @@ class MainWindow(QMainWindow):
             pix.stride, QImage.Format.Format_RGB888
         )
         self.pdf_label.setPixmap(QPixmap.fromImage(img))
-
-    def clear_chat_history(self):
-        self.ai.clear_chat_history()
 
     def ask_ai(self, question):
         if not self.pdf:
