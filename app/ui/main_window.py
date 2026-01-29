@@ -1,12 +1,13 @@
 import os
+from PyQt6.QtCore import Qt, QSettings
 
 from PyQt6.QtWidgets import (
     QMainWindow, QFileDialog, QListWidget,
     QSplitter, QLabel, QListWidgetItem,
     QPushButton, QVBoxLayout, QWidget, QDialog,
+    QMessageBox
 )
 from PyQt6.QtGui import QImage, QPixmap, QFont
-from PyQt6.QtCore import Qt, QSettings
 
 from core.pdf_controller import PdfController
 from core.ai_client import AIClient, AIClientError
@@ -164,6 +165,24 @@ class MainWindow(QMainWindow):
         self.open_pdf(path)
 
     def open_pdf(self, path):
+        if not os.path.exists(path):
+            row_to_remove = None
+            for i in range(self.book_list.count()):
+                item = self.book_list.item(i)
+                if item and item.data(Qt.ItemDataRole.UserRole) == path:
+                    row_to_remove = i
+                    break
+            if row_to_remove is not None:
+                self.book_list.takeItem(row_to_remove)
+                self.books = [p for p in self.books if p != path]
+                save_books(self.books)
+            if self.pdf and getattr(self.pdf, "path", None) == path:
+                self.pdf = None
+                self.viewer.image_label.setText("Откройте PDF")
+
+            QMessageBox.critical(self, "Ошибка", f"Файл не найден: {path}")
+            return
+
         self.pdf = PdfController(path)
         self.viewer.set_document(self.pdf, doc_id=path)
 
@@ -221,4 +240,3 @@ class MainWindow(QMainWindow):
         self.audio_worker.error.connect(on_error)
         self.audio_worker.start()
         self.audio_progress_dialog.show()
-
