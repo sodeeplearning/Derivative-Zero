@@ -210,14 +210,12 @@ class MainWindow(QMainWindow):
             print("Ошибка при создании AudioProgressDialog:", e)
 
         def on_finished():
-            print("AudioWorker finished signal received")
             self.audio_progress_dialog.label.setText("✅ Ваша аудиокнига готова!")
 
         def on_error(e):
             self.audio_progress_dialog.label.setText(f"❌ Ошибка: {e}")
             self.audio_progress_dialog.progress.setRange(0, 1)
             self.audio_progress_dialog.progress.setValue(1)
-            print("Ошибка при генерации аудио:", e)
 
         self.audio_worker.finished.connect(on_finished)
         self.audio_worker.error.connect(on_error)

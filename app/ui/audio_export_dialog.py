@@ -1,9 +1,10 @@
+import os
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton,
-    QFileDialog, QRadioButton, QButtonGroup, QComboBox
+    QFileDialog, QRadioButton, QButtonGroup,
+    QMessageBox, QProgressBar, QComboBox,
 )
-from PyQt6.QtWidgets import  QProgressBar
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 
 
@@ -73,6 +74,8 @@ class AudioExportDialog(QDialog):
         path_layout = QHBoxLayout()
         self.path_input = QLineEdit()
         self.path_input.setPlaceholderText("Путь для сохранения архива")
+        # Предзаполняем путь текущей рабочей директорией, чтобы избежать мгновенного закрытия без данных
+        self.path_input.setText(os.getcwd())
         browse_btn = QPushButton("Обзор")
         path_layout.addWidget(self.path_input)
         path_layout.addWidget(browse_btn)
@@ -105,7 +108,7 @@ class AudioExportDialog(QDialog):
         layout.addLayout(btn_layout)
 
         cancel_btn.clicked.connect(self.reject)
-        self.create_btn.clicked.connect(self.accept)
+        self.create_btn.clicked.connect(self._validate_and_accept)
 
     def choose_path(self):
         path = QFileDialog.getExistingDirectory(self, "Выберите папку")
@@ -119,3 +122,9 @@ class AudioExportDialog(QDialog):
             "split_by_pages": self.by_pages.isChecked(),
             "voice": self.voice_combo.currentText()
         }
+
+    def _validate_and_accept(self):
+        if not self.path_input.text().strip() or not self.archive_name.text().strip():
+            QMessageBox.warning(self, "Ошибка", "Укажите путь сохранения архива и имя архива.")
+            return
+        self.accept()
