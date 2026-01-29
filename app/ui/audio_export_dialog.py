@@ -1,4 +1,6 @@
 import os
+import zipfile
+
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton,
@@ -19,8 +21,6 @@ class AudioWorker(QThread):
         self.opts = options
 
     def run(self):
-        import zipfile, os
-
         try:
             texts = self.pdf.get_all_text(split_by_page=self.opts["split_by_pages"])
             audio_bytes_list = self.ai.get_speech(texts=texts, voice=self.opts["voice"])
@@ -58,7 +58,6 @@ class AudioProgressDialog(QDialog):
         self.setLayout(layout)
 
 
-
 class AudioExportDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -74,7 +73,6 @@ class AudioExportDialog(QDialog):
         path_layout = QHBoxLayout()
         self.path_input = QLineEdit()
         self.path_input.setPlaceholderText("Путь для сохранения архива")
-        # Предзаполняем путь текущей рабочей директорией, чтобы избежать мгновенного закрытия без данных
         self.path_input.setText(os.getcwd())
         browse_btn = QPushButton("Обзор")
         path_layout.addWidget(self.path_input)
@@ -95,7 +93,11 @@ class AudioExportDialog(QDialog):
 
         layout.addWidget(QLabel("Выбор голоса:"))
         self.voice_combo = QComboBox()
-        self.voice_combo.addItems(["coral", "blue", "green"])
+        self.voice_combo.addItems([
+            'alloy', 'echo', 'fable', 'onyx',
+            'nova', 'shimmer', 'coral', 'verse',
+            'ballad', 'ash', 'sage', 'marin'
+        ])
         self.voice_combo.setCurrentText("coral")
         layout.addWidget(self.voice_combo)
 
