@@ -129,11 +129,8 @@ class ChatWidget(QWidget):
         self.scroll_to_bottom()
 
     def clear_chat(self):
-        try:
-            self.on_clear_chat()
-            self.chat.clear()
-        except Exception as e:
-            self.chat.append(f"<b>Ошибка:</b> {e}<br><br>")
+        self.on_clear_chat()
+        self.chat.clear()
 
     def send(self):
         msg = self.input.text().strip()

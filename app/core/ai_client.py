@@ -1,6 +1,5 @@
+import json
 import requests
-import base64
-import warnings
 
 from typing import Callable
 
@@ -38,14 +37,10 @@ class AIClient:
         self.url = url
 
     @safe_request
-    def ask(self, page_text, images, question) -> str:
+    def ask(self, chat: list[dict], model_name: str = "gpt-5-mini") -> str:
         payload = {
-            "context": page_text,
-            "question": question,
-            "images": [
-                base64.b64encode(img).decode()
-                for img in images
-            ]
+            "chat": json.dumps(chat),
+            "model_name": model_name,
         }
 
         response = requests.post(
@@ -56,23 +51,6 @@ class AIClient:
         response.raise_for_status()
         data = response.json()
         return data["text"]
-
-    def clear_chat_history_no_exceptions(self):
-        try:
-            requests.delete(
-                self.url + "/ai-consulter/clear_chat_history",
-                timeout=40,
-            )
-        except Exception as e:
-            warnings.warn(f"Trying to update chat history caused error: {e}")
-
-    @safe_request
-    def clear_chat_history(self):
-        response = requests.delete(
-            self.url + "/ai-consulter/clear_chat_history",
-            timeout=40,
-        )
-        response.raise_for_status()
 
     @safe_request
     def get_speech(
