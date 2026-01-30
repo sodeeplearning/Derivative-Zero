@@ -1,17 +1,20 @@
 import os
-from PyQt6.QtCore import Qt, QSettings, QThread, QTimer, pyqtSignal
+from PyQt6.QtCore import Qt, QSettings, pyqtSignal
 import threading
+from typing import Optional
 
 from PyQt6.QtWidgets import (
     QMainWindow, QFileDialog, QListWidget,
     QSplitter, QLabel, QListWidgetItem,
     QPushButton, QVBoxLayout, QWidget, QDialog,
-    QMessageBox
+    QMessageBox,
 )
 from PyQt6.QtGui import QImage, QPixmap, QFont
 
-from core.pdf_controller import PdfController
+import config
 from core.ai_client import AIClient, AIClientError
+from core.chat import UserChat
+from core.pdf_controller import PdfController
 from core.storage import load_books, save_books
 
 from ui.audio_export_dialog import AudioWorker, AudioProgressDialog, AudioExportDialog
@@ -27,12 +30,12 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.audio_worker = None
         self.audio_progress_dialog = None
+        self.pdf: Optional[PdfController] = None
 
         self.setWindowTitle("Derivative Zero")
         self.resize(1200, 700)
 
         self.books = load_books()
-        self.pdf = None
 
         books_title = QLabel("📚 Книги")
         title_font = QFont()
@@ -90,10 +93,11 @@ class MainWindow(QMainWindow):
 
         self.ai = AIClient(ai_url)
 
+        self.user_chat: UserChat = UserChat()
         self.chat = ChatWidget(
             on_send=self.ask_ai,
             on_url_change=self.update_ai_url,
-            on_clear_chat=self.ai.clear_chat_history,
+            on_clear_chat=self.user_chat.clear_chat,
         )
         self.chat.setMinimumWidth(200)
         self.chat.setMaximumWidth(420)
@@ -114,8 +118,6 @@ class MainWindow(QMainWindow):
 
         if self.settings.value("windowState"):
             self.restoreState(self.settings.value("windowState"))
-
-        self.ai.clear_chat_history_no_exceptions()
 
         self.translate_result.connect(self._on_translate_finished)
         self.translate_error.connect(self._on_translate_error)
@@ -209,12 +211,20 @@ class MainWindow(QMainWindow):
         if not self.pdf:
             return "📄 PDF не загружен"
 
+        self.user_chat.append_user_message(
+            user_prompt=question,
+            page_images=self.pdf.get_page_images(),
+            page_content=self.pdf.get_page_text(),
+            page_number=self.pdf.page_index,
+        )
+
         try:
-            return self.ai.ask(
-                self.pdf.get_page_text(),
-                self.pdf.get_page_images(),
-                question
+            ai_response = self.ai.ask(
+                chat=self.user_chat.get_chat(),
+                model_name=config.DefaultAIModels.ai_consult_model,
             )
+            self.user_chat.append_assistant_message(ai_response)
+            return ai_response
 
         except AIClientError as e:
             return f"<span style='color:red'>{e}</span>"

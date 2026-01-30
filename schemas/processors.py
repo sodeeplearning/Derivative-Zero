@@ -6,9 +6,8 @@ from .base import TextModel
 
 
 class AIConsulterInputModel(BaseModel):
-    context: str
-    question: str
-    images: Optional[List[str]]
+    chat: str
+    model_name: Optional[str] = Field(default="gpt-5-mini")
     convert_to_html: Optional[bool] = Field(default=True)
 
 
