@@ -17,7 +17,7 @@ class TranslatorProcessor(BaseAbstractProcessor):
 
         self.system_prompt = """You are a translator. Your task - translate text to target language."""
 
-    def __call__(self, body: TranslatorInputModel) -> TranslatorOutputModel:
+    async def __call__(self, body: TranslatorInputModel) -> TranslatorOutputModel:
         messages = [
             {
                 "role": "system",

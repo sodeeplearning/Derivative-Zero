@@ -6,8 +6,8 @@ from PyQt6.QtGui import QFont, QTextCursor
 
 
 class SendWorker(QObject):
-    finished = pyqtSignal(str)
-    error = pyqtSignal(str)
+    finished = pyqtSignal(object)
+    error = pyqtSignal(object)
 
     def __init__(self, on_send, msg):
         super().__init__()

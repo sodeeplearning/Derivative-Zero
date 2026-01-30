@@ -1,5 +1,6 @@
 import os
-from PyQt6.QtCore import Qt, QSettings
+from PyQt6.QtCore import Qt, QSettings, QThread, QTimer, pyqtSignal
+import threading
 
 from PyQt6.QtWidgets import (
     QMainWindow, QFileDialog, QListWidget,
@@ -19,6 +20,9 @@ from ui.pdf_viewer import PdfViewer
 
 
 class MainWindow(QMainWindow):
+    translate_result = pyqtSignal(str)
+    translate_error = pyqtSignal(str)
+
     def __init__(self):
         super().__init__()
         self.audio_worker = None
@@ -54,10 +58,14 @@ class MainWindow(QMainWindow):
         self.make_audio_btn = QPushButton("Сделать аудио-версию")
         self.make_audio_btn.clicked.connect(self.make_audio)
 
+        self.translate_btn = QPushButton("Перевести текст страницы")
+        self.translate_btn.clicked.connect(self.translate_page)
+
         books_layout = QVBoxLayout()
         books_layout.addWidget(books_title)
         books_layout.addWidget(self.open_pdf_btn)
         books_layout.addWidget(self.make_audio_btn)
+        books_layout.addWidget(self.translate_btn)
         books_layout.addWidget(self.book_list)
         books_layout.addWidget(self.remove_book_btn)
 
@@ -108,6 +116,9 @@ class MainWindow(QMainWindow):
             self.restoreState(self.settings.value("windowState"))
 
         self.ai.clear_chat_history_no_exceptions()
+
+        self.translate_result.connect(self._on_translate_finished)
+        self.translate_error.connect(self._on_translate_error)
 
     def closeEvent(self, event):
         self.settings.setValue("geometry", self.saveGeometry())
@@ -244,3 +255,61 @@ class MainWindow(QMainWindow):
         self.audio_worker.error.connect(on_error)
         self.audio_worker.start()
         self.audio_progress_dialog.show()
+
+    def translate_page(self):
+        if not self.pdf:
+            QMessageBox.information(self, "Инфо", "PDF не загружен")
+            return
+
+        page_text = self.pdf.get_page_text()
+        if not page_text or not page_text.strip():
+            QMessageBox.information(self, "Инфо", "На странице нет текста для перевода")
+            return
+
+        try:
+            self.translate_btn.setEnabled(False)
+            self.chat.chat.append("<i>Перевод страницы...</i><br><br>")
+
+            def _run_translate():
+                try:
+                    result = self.ai.translate_text(page_text)
+                    result_str = str(result)
+                    self.translate_result.emit(result_str)
+                except Exception as e:
+                    self.translate_error.emit(str(e))
+
+            t = threading.Thread(target=_run_translate, daemon=True)
+            self._translate_thread = t
+            t.start()
+
+        except Exception as e:
+            QMessageBox.critical(self, "Ошибка", f"Не удалось начать перевод: {e}")
+            self.translate_btn.setEnabled(True)
+
+    def _on_translate_finished(self, answer: str):
+        try:
+            if not answer or (isinstance(answer, str) and not answer.strip()):
+                QMessageBox.information(self, "Перевод", f"Сервер вернул пустой ответ:\n{repr(answer)}")
+            else:
+                try:
+                    self.chat.chat.append(f"<b>Перевод страницы:</b> {answer}<br><br>")
+                    self.chat.scroll_to_bottom()
+                except Exception as e:
+                    QMessageBox.information(
+                        self, "Перевод",
+                        f"Не удалось обновить чат: {e}\nОтвет сервера: {repr(answer)[:1000]}"
+                    )
+        finally:
+            self.translate_btn.setEnabled(True)
+            self._translate_thread = None
+            self.translate_thread = None
+            self.translate_worker = None
+
+    def _on_translate_error(self, err: str):
+        try:
+            self.chat.chat.append(f"<b>Ошибка при переводе:</b> {err}<br><br>")
+            self.chat.scroll_to_bottom()
+        finally:
+            self.translate_btn.setEnabled(True)
+            self.translate_worker = None
+            self.translate_thread = None

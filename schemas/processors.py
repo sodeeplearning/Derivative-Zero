@@ -17,7 +17,7 @@ class AIConsulterOutputModel(TextModel):
 
 
 class TranslatorInputModel(TextModel):
-    target_language: str = Field(default="ru")
+    target_language: Optional[str] = Field(default="ru")
 
 
 class TranslatorOutputModel(TextModel):

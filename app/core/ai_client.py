@@ -99,9 +99,10 @@ class AIClient:
         return data["audio_base64"]
 
     @safe_request
-    def translate_text(self, text: str) -> str:
+    def translate_text(self, text: str, target_language: str = "ru") -> str:
         payload = {
             "text": text,
+            "target_language": target_language,
         }
 
         response = requests.post(
