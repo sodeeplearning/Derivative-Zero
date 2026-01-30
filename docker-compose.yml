@@ -11,15 +11,21 @@ services:
       context: ./
       dockerfile: ai_consulter_service/Dockerfile
     restart: unless-stopped
+    environment:
+      PYTHONUNBUFFERED: "1"
 
   translator:
     build:
       context: ./
       dockerfile: translator_service/Dockerfile
     restart: unless-stopped
+    environment:
+      PYTHONUNBUFFERED: "1"
 
   tts:
     build:
       context: ./
       dockerfile: tts_service/Dockerfile
     restart: unless-stopped
+    environment:
+      PYTHONUNBUFFERED: "1"

@@ -23,6 +23,7 @@ class BackendLogger:
 
     def sync_handler_logger(self, service_name: str):
         def wrapper_creator(func: Callable):
+            @wraps(func)
             def wrapper(*args, **kwargs):
                 self.info(f"Received task to {service_name}")
                 start = time()
@@ -41,11 +42,11 @@ class BackendLogger:
                 return result
 
             return wrapper
-
         return wrapper_creator
 
     def async_handler_logger(self, service_name: str):
         def wrapper_creator(func: Callable):
+            @wraps(func)
             async def wrapper(*args, **kwargs):
                 self.info(f"Received task to {service_name}")
                 start = time()
