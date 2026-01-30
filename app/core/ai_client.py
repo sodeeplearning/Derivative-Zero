@@ -44,7 +44,7 @@ class AIClient:
         }
 
         response = requests.post(
-            self.url + "/ai-consulter/sync",
+            self.url + "/ai-consulter/async",
             json=payload,
             timeout=120,
         )

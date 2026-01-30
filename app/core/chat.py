@@ -43,7 +43,7 @@ class UserChat:
             for image in page_images:
                 media_content.append({
                     "type": "image_url",
-                    "image_url": image_bytes_to_openrouter_string(image)
+                    "image_url": {"url": image_bytes_to_openrouter_string(image)}
                 })
 
         new_message = {
@@ -60,9 +60,11 @@ class UserChat:
     def append_assistant_message(self, message: str):
         new_message = {
             "role": "assistant",
-            "content": {
-                "type": "text",
-                "text": message,
-            }
+            "content": [
+                {
+                    "type": "text",
+                    "text": message,
+                }
+            ]
         }
         self._chat.append(new_message)

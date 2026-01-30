@@ -1,5 +1,5 @@
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from .base import BaseAbstractProcessor
 
@@ -11,7 +11,7 @@ class AIConsulterProcessor(BaseAbstractProcessor):
     def __init__(self):
         super().__init__()
 
-        self.client = OpenAI(
+        self.client = AsyncOpenAI(
             api_key=config.Secrets.openrouter_api_key,
             base_url=config.Links.openrouter_handler,
         )
@@ -24,10 +24,10 @@ class AIConsulterProcessor(BaseAbstractProcessor):
         Use markdown formatting + LaTex for formulas.
         """
 
-    def __call__(self, body: AIConsulterInputModel) -> AIConsulterOutputModel:
+    async def __call__(self, body: AIConsulterInputModel) -> AIConsulterOutputModel:
         chat = json.loads(body.chat)
 
-        chat_completion = self.client.chat.completions.create(
+        chat_completion = await self.client.chat.completions.create(
             model=body.model_name,
             messages=chat,
         )

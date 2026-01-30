@@ -1,4 +1,4 @@
-from openai import OpenAI
+from openai import AsyncOpenAI
 import config
 from .base import BaseAbstractProcessor
 
@@ -10,7 +10,7 @@ class TranslatorProcessor(BaseAbstractProcessor):
     def __init__(self):
         self.model_name = config.AIModels.translator_model
 
-        self.client = OpenAI(
+        self.client = AsyncOpenAI(
             api_key=config.Secrets.openrouter_api_key,
             base_url=config.Links.openrouter_handler,
         )
@@ -39,7 +39,7 @@ class TranslatorProcessor(BaseAbstractProcessor):
             }
         ]
 
-        chat_completion = self.client.chat.completions.create(
+        chat_completion = await self.client.chat.completions.create(
             messages=messages,
             model=self.model_name,
         )
