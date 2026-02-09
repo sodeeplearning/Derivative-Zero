@@ -7,7 +7,7 @@ class UserChat:
             self,
             system_prompt: str = config.Prompts.ai_consulter
     ):
-        self._chat = [
+        self._base_chat = [
             {
                 "role": "system",
                 "content": [
@@ -18,10 +18,12 @@ class UserChat:
                 ]
             },
         ]
+        self._chat = self._base_chat.copy()
         self._viewed_pages = set()
 
     def clear_chat(self):
-        self._chat.clear()
+        self._chat = self._base_chat.copy()
+        self._viewed_pages.clear()
 
     def get_chat(self):
         return self._chat
