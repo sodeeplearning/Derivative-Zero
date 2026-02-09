@@ -213,9 +213,7 @@ class MainWindow(QMainWindow):
 
         self.user_chat.append_user_message(
             user_prompt=question,
-            page_images=self.pdf.get_page_images(),
-            page_content=self.pdf.get_page_text(),
-            page_number=self.pdf.page_index,
+            window_context=self.pdf.get_pages_window(),
         )
 
         try:
