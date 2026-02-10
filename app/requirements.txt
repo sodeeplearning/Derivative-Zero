@@ -1,2 +1,3 @@
 PyMuPDF
 PyQt6
+requests

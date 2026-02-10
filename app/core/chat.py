@@ -1,11 +1,10 @@
-from utils.image_processing import image_bytes_to_openrouter_string
-import config
+from core.utils import ai_consulter_prompt, image_bytes_to_openrouter_string
 
 
 class UserChat:
     def __init__(
             self,
-            system_prompt: str = config.Prompts.ai_consulter
+            system_prompt: str = ai_consulter_prompt
     ):
         self._base_chat = [
             {

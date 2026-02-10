@@ -1,9 +1,15 @@
 import json
+import os
 from pathlib import Path
 
 
-FILE = Path("data/recent_books.json")
-FILE.parent.mkdir(exist_ok=True)
+if os.name == "nt":
+    base_data_dir = Path(os.getenv("APPDATA", Path.home() / "AppData" / "Roaming")) / "DerivativeZero"
+else:
+    base_data_dir = Path(os.getenv("XDG_DATA_HOME", Path.home() / ".local" / "share")) / "derivative_zero"
+
+FILE = base_data_dir / "recent_books.json"
+FILE.parent.mkdir(parents=True, exist_ok=True)
 
 
 def load_books():

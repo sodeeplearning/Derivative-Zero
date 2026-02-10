@@ -11,7 +11,6 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QImage, QPixmap, QFont
 
-import config
 from core.ai_client import AIClient, AIClientError
 from core.chat import UserChat
 from core.pdf_controller import PdfController
@@ -219,7 +218,6 @@ class MainWindow(QMainWindow):
         try:
             ai_response = self.ai.ask(
                 chat=self.user_chat.get_chat(),
-                model_name=config.DefaultAIModels.ai_consult_model,
             )
             self.user_chat.append_assistant_message(ai_response)
             return ai_response
