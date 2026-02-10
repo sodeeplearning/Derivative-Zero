@@ -19,6 +19,6 @@ pip install pyinstaller
 ```
 И наконец соберите приложение
 ```bash
-pyinstaller --onefile --windowed --name DerivativeZero --icon=docs/images/appicon.png app/main.py
+pyinstaller --onefile --windowed --name DerivativeZero --icon=docs/images/derivative-zero-icon.ico app/main.py
 ```
 После этого перетащите созданное приложение в корневую папку проекта
