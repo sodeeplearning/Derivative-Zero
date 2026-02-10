@@ -11,7 +11,6 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QImage, QPixmap, QFont
 
-import config
 from core.ai_client import AIClient, AIClientError
 from core.chat import UserChat
 from core.pdf_controller import PdfController
@@ -213,15 +212,12 @@ class MainWindow(QMainWindow):
 
         self.user_chat.append_user_message(
             user_prompt=question,
-            page_images=self.pdf.get_page_images(),
-            page_content=self.pdf.get_page_text(),
-            page_number=self.pdf.page_index,
+            window_context=self.pdf.get_pages_window(),
         )
 
         try:
             ai_response = self.ai.ask(
                 chat=self.user_chat.get_chat(),
-                model_name=config.DefaultAIModels.ai_consult_model,
             )
             self.user_chat.append_assistant_message(ai_response)
             return ai_response

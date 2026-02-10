@@ -1,13 +1,12 @@
-from utils.image_processing import image_bytes_to_openrouter_string
-import config
+from core.utils import ai_consulter_prompt, image_bytes_to_openrouter_string
 
 
 class UserChat:
     def __init__(
             self,
-            system_prompt: str = config.Prompts.ai_consulter
+            system_prompt: str = ai_consulter_prompt
     ):
-        self._chat = [
+        self._base_chat = [
             {
                 "role": "system",
                 "content": [
@@ -18,42 +17,48 @@ class UserChat:
                 ]
             },
         ]
+        self._chat = self._base_chat.copy()
         self._viewed_pages = set()
+        self._media_content = dict()
 
     def clear_chat(self):
-        self._chat.clear()
+        self._chat = self._base_chat.copy()
+        self._viewed_pages.clear()
 
     def get_chat(self):
-        return self._chat
+        chat = self._chat.copy()
+        for page_id in sorted(self._viewed_pages):
+            chat[0]["content"].append({
+                "type": "text",
+                "text": f"Page {page_id} content: {self._media_content[page_id]["text"]}",
+            })
+            for image in self._media_content[page_id]["images"]:
+                chat[0]["content"].append({
+                    "type": "image_url",
+                    "image_url": {"url": image_bytes_to_openrouter_string(image)},
+                })
+        return chat
+
+    def update_content(self, window_content):
+        self._media_content |= window_content["contents"]
+        self._viewed_pages |= window_content["indexes"]
 
     def append_user_message(
             self,
-            page_number: int,
-            page_content: str,
-            page_images: list[bytes],
             user_prompt: str,
+            window_context: dict,
     ):
-        text_message = f"Student's question: {user_prompt}"
-        media_content = []
-
-        if page_number not in self._viewed_pages:
-            self._viewed_pages.add(page_number)
-            text_message += f"\nContext: {page_content}"
-
-            for image in page_images:
-                media_content.append({
-                    "type": "image_url",
-                    "image_url": {"url": image_bytes_to_openrouter_string(image)}
-                })
+        self.update_content(window_context)
+        page_info = f"\nPage user reading at the moment: {window_context["current_page_index"]}"
 
         new_message = {
             "role": "user",
             "content": [
                 {
                     "type": "text",
-                    "text": text_message,
+                    "text": user_prompt + page_info,
                 }
-            ] + media_content
+            ]
         }
         self._chat.append(new_message)
 
