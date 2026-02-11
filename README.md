@@ -28,6 +28,10 @@ OpenAI SDK формат.
 
 # Как работать с приложением
 
+Откройте нужную вам версию приложения
+- [Для Windows](DerivativeZero.exe)
+- [Для MacOS / Linux](DerivativeZero)
+
 ![Начальный экран](docs/images/working-sample-0.png)
 
 Чтобы начать пользоваться приложением, нажмите ```Открыть PDF```
