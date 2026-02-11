@@ -9,6 +9,11 @@ python -m venv venv
 ```bash
 .\venv\Scripts\Activate.ps1
 ```
+Или если у вас UNIX система
+```bash
+source venv/bin/activate
+```
+
 После этого установите все зависимости приложения
 ```bash
 pip install -r app/requirements.txt
