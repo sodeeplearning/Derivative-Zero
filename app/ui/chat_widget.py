@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLineEdit, QPushButton,
     QLabel, QHBoxLayout
 )
+from PyQt6.QtWidgets import QSizePolicy
 from PyQt6.QtCore import QSettings, Qt, QThread, pyqtSignal, QObject
 from PyQt6.QtGui import QFont
 from PyQt6.QtWebEngineWidgets import QWebEngineView
@@ -32,23 +33,36 @@ body {{
     font-family: Arial, sans-serif;
     font-size: {font_size}px;
     background: #ffffff;
+    margin: 8px;
+    padding: 0;
+    line-height: 1.45;
+}}
+
+.container {{
+    max-width: 100%;
 }}
 
 .message {{
-    margin-bottom: 14px;
+    margin: 10px 0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    line-height: 1.7;
 }}
 
 .user {{
     font-weight: bold;
+    color: #0b5ed7;
 }}
 
 .ai {{
     font-weight: bold;
+    color: #198754;
 }}
 
 .thinking {{
     font-style: italic;
-    opacity: 0.7;
+    opacity: 0.8;
 }}
 </style>
 </head>
@@ -140,17 +154,27 @@ class ChatWidget(QWidget):
 
         self.clear_btn = QPushButton("Очистить чат")
         self.clear_btn.clicked.connect(self.clear_chat)
+        self.clear_btn.setMaximumHeight(36)
+        self.clear_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         layout.addWidget(self.clear_btn)
 
         self.chat = QWebEngineView()
-        layout.addWidget(self.chat)
+        self.chat.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        layout.addWidget(self.chat, 1)
 
         self.input = QLineEdit()
+        self.input.setMaximumHeight(32)
+        self.input.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
         self.send_btn = QPushButton("Отправить")
+        self.send_btn.setMaximumHeight(32)
+        self.send_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.send_btn.clicked.connect(self.send)
 
-        layout.addWidget(self.input)
-        layout.addWidget(self.send_btn)
+        input_layout = QHBoxLayout()
+        input_layout.addWidget(self.input)
+        input_layout.addWidget(self.send_btn)
+        layout.addLayout(input_layout)
 
     def render_chat(self):
         html = HTML_TEMPLATE.format(
