@@ -32,7 +32,8 @@ window.MathJax = {{
 body {{
     font-family: Arial, sans-serif;
     font-size: {font_size}px;
-    background: #ffffff;
+    background: #1e1e1e;      /* тёмно-серый фон */
+    color: #f0f0f0;           /* основной белый текст */
     margin: 8px;
     padding: 0;
     line-height: 1.45;
@@ -46,23 +47,26 @@ body {{
     margin: 10px 0;
     padding: 8px 10px;
     border-radius: 6px;
+    background: #2a2a2a;
     white-space: pre-wrap;
-    line-height: 1.7;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
 }}
 
 .user {{
     font-weight: bold;
-    color: #0b5ed7;
+    color: #4da3ff;           /* мягкий синий */
 }}
 
 .ai {{
     font-weight: bold;
-    color: #198754;
+    color: #6ddf8b;           /* мягкий зелёный */
 }}
 
 .thinking {{
     font-style: italic;
-    opacity: 0.8;
+    opacity: 0.75;
+    color: #cccccc;
 }}
 </style>
 </head>
