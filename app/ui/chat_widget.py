@@ -20,20 +20,23 @@ HTML_TEMPLATE = """
 window.MathJax = {{
   tex: {{
     inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
-    displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']]
+    displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
+    processEscapes: true
   }},
-  svg: {{ fontCache: 'global' }}
+  chtml: {{
+    scale: 1.0
+  }}
 }};
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 
 <style>
 body {{
     font-family: Arial, sans-serif;
     font-size: {font_size}px;
-    background: #1e1e1e;      /* тёмно-серый фон */
-    color: #f0f0f0;           /* основной белый текст */
+    background: #1e1e1e;
+    color: #f0f0f0;
     margin: 8px;
     padding: 0;
     line-height: 1.45;
@@ -48,25 +51,41 @@ body {{
     padding: 8px 10px;
     border-radius: 6px;
     background: #2a2a2a;
+
     white-space: pre-wrap;
-    word-wrap: break-word;
     overflow-wrap: anywhere;
+    word-wrap: break-word;
 }}
 
 .user {{
     font-weight: bold;
-    color: #4da3ff;           /* мягкий синий */
+    color: #4da3ff;
 }}
 
 .ai {{
     font-weight: bold;
-    color: #6ddf8b;           /* мягкий зелёный */
+    color: #6ddf8b;
 }}
 
 .thinking {{
     font-style: italic;
     opacity: 0.75;
     color: #cccccc;
+}}
+
+mjx-container {{
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 0;
+}}
+
+mjx-container[display="true"] {{
+    text-align: center;
+}}
+
+mjx-container * {{
+    color: inherit !important;
 }}
 </style>
 </head>
