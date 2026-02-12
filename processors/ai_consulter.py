@@ -16,14 +16,6 @@ class AIConsulterProcessor(BaseAbstractProcessor):
             base_url=config.Links.openrouter_handler,
         )
 
-        self.base_system_prompt = """You are a science consulter.
-        Your task - answer student's question about some studying text.
-        You will be provided some piece of text that student is reading right now in the context.
-        You need to make 100% correct answer on his question. 
-        You can use text from context or your own knowledge.
-        Use markdown formatting + LaTex for formulas.
-        """
-
     async def __call__(self, body: AIConsulterInputModel) -> AIConsulterOutputModel:
         chat = json.loads(body.chat)
 
