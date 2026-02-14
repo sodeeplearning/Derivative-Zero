@@ -1,3 +1,4 @@
 PyMuPDF
 PyQt6
 requests
+pyqt6-webengine
