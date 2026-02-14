@@ -17,81 +17,121 @@ HTML_TEMPLATE = """
 <meta charset="utf-8">
 
 <script>
-window.MathJax = {{
-  tex: {{
+window.MathJax = {
+  tex: {
     inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
     displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
     processEscapes: true
-  }},
-  chtml: {{
+  },
+  chtml: {
     scale: 1.0
-  }}
-}};
+  },
+  startup: {
+    pageReady: () => {
+      return MathJax.startup.defaultPageReady().then(() => {
+        document.querySelectorAll('mjx-container[display="true"]').forEach(el => {
+          const math = el.querySelector('mjx-math');
+          if (!math) return;
+
+          const SAFETY = 20;
+          if (math.scrollWidth > el.clientWidth - SAFETY) {
+            el.classList.add('overflowed');
+          }
+        });
+      });
+    }
+  }
+};
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 
 <style>
-body {{
+body {
     font-family: Arial, sans-serif;
-    font-size: {font_size}px;
+    font-size: __FONT_SIZE__px;
     background: #1e1e1e;
     color: #f0f0f0;
     margin: 8px;
     padding: 0;
     line-height: 1.45;
-}}
+}
 
-.container {{
-    max-width: 100%;
-}}
-
-.message {{
+.message {
     margin: 10px 0;
     padding: 8px 10px;
     border-radius: 6px;
     background: #2a2a2a;
-
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     word-wrap: break-word;
-}}
+}
 
-.user {{
+.user {
     font-weight: bold;
     color: #4da3ff;
-}}
+}
 
-.ai {{
+.ai {
     font-weight: bold;
     color: #6ddf8b;
-}}
+}
 
-.thinking {{
+.thinking {
     font-style: italic;
     opacity: 0.75;
     color: #cccccc;
-}}
+}
 
-mjx-container {{
+/* MathJax base */
+mjx-container {
     max-width: 100%;
+    overflow: hidden;
+    padding: 4px 0;
+}
+
+mjx-container[display="true"] {
+    text-align: center;
+}
+
+/* Only long formulas */
+mjx-container.overflowed {
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 4px 0;
-}}
+    border: 1px solid #555;
+    border-radius: 4px;
+    background: #2f2f2f;
+    padding: 6px 8px;
+    margin: 4px 0;
+}
 
-mjx-container[display="true"] {{
-    text-align: center;
-}}
+/* Visible scrollbar */
+mjx-container.overflowed::-webkit-scrollbar {
+    height: 8px;
+}
 
-mjx-container * {{
+mjx-container.overflowed::-webkit-scrollbar-track {
+    background: #2f2f2f;
+}
+
+mjx-container.overflowed::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+mjx-container.overflowed::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
+/* Formula color */
+mjx-container * {
     color: inherit !important;
-}}
+}
 </style>
 </head>
 
 <body>
-{content}
+__CONTENT__
 </body>
 </html>
 """
@@ -200,10 +240,7 @@ class ChatWidget(QWidget):
         layout.addLayout(input_layout)
 
     def render_chat(self):
-        html = HTML_TEMPLATE.format(
-            content="".join(self.messages),
-            font_size=self.font_size
-        )
+        html = HTML_TEMPLATE.replace("__CONTENT__", "".join(self.messages)).replace("__FONT_SIZE__", str(self.font_size))
         self.chat.setHtml(html)
         self.chat.page().runJavaScript(
             "window.scrollTo(0, document.body.scrollHeight);"
