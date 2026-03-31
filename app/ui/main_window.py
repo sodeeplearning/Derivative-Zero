@@ -95,7 +95,6 @@ class MainWindow(QMainWindow):
         self.user_chat: UserChat = UserChat()
         self.chat = ChatWidget(
             on_send=self.ask_ai,
-            on_url_change=self.update_ai_url,
             on_clear_chat=self.user_chat.clear_chat,
         )
         self.chat.setMinimumWidth(200)

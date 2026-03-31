@@ -165,11 +165,10 @@ class SendWorker(QObject):
 
 
 class ChatWidget(QWidget):
-    def __init__(self, on_send, on_url_change, on_clear_chat):
+    def __init__(self, on_send, on_clear_chat):
         super().__init__()
 
         self.on_send = on_send
-        self.on_url_change = on_url_change
         self.on_clear_chat = on_clear_chat
 
         self.settings = QSettings("ai_pdf_reader", "config")
@@ -194,14 +193,6 @@ class ChatWidget(QWidget):
         title.setFont(font)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
-
-        layout.addWidget(QLabel("AI endpoint URL:"))
-        self.url_input = QLineEdit()
-        self.url_input.setText(
-            self.settings.value("ai_url", "http://127.0.0.1:21489")
-        )
-        self.url_input.editingFinished.connect(self.save_url)
-        layout.addWidget(self.url_input)
 
         font_layout = QHBoxLayout()
         self.increase_btn = QPushButton("A+")
@@ -254,12 +245,6 @@ class ChatWidget(QWidget):
         if self.font_size > 8:
             self.font_size -= 1
             self.render_chat()
-
-    def save_url(self):
-        url = self.url_input.text().strip()
-        if url:
-            self.settings.setValue("ai_url", url)
-            self.on_url_change(url)
 
     def send(self):
         msg = self.input.text().strip()
