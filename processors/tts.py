@@ -14,6 +14,7 @@ class AsyncTextToSpeechMMLM(BaseAbstractProcessor):
         self.client = AsyncClient(
             base_url=config.Links.openrouter_handler,
             api_key=config.Secrets.openrouter_api_key,
+            timeout=600,
         )
         self.model_name = config.AIModels.tts_mllm
 

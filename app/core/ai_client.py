@@ -46,7 +46,7 @@ class AIClient:
         response = requests.post(
             self.url + "/ai-consulter/async",
             json=payload,
-            timeout=120,
+            timeout=600,
         )
         response.raise_for_status()
         data = response.json()
@@ -69,7 +69,7 @@ class AIClient:
         response = requests.post(
             self.url + "/tts/async",
             json=payload,
-            timeout=600,
+            timeout=1200,
         )
         response.raise_for_status()
         data = response.json()
@@ -86,7 +86,7 @@ class AIClient:
         response = requests.post(
             self.url + "/translator/async",
             json=payload,
-            timeout=200,
+            timeout=500,
         )
         response.raise_for_status()
         data = response.json()

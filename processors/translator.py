@@ -13,6 +13,7 @@ class TranslatorProcessor(BaseAbstractProcessor):
         self.client = AsyncOpenAI(
             api_key=config.Secrets.openrouter_api_key,
             base_url=config.Links.openrouter_handler,
+            timeout=600,
         )
 
         self.system_prompt = """You are a translator. Your task - translate text to target language."""

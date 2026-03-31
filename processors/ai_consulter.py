@@ -14,6 +14,7 @@ class AIConsulterProcessor(BaseAbstractProcessor):
         self.client = AsyncOpenAI(
             api_key=config.Secrets.openrouter_api_key,
             base_url=config.Links.openrouter_handler,
+            timeout=600,
         )
 
     async def __call__(self, body: AIConsulterInputModel) -> AIConsulterOutputModel:
