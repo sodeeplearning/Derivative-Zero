@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-22.04]
+        os: [windows-latest, ubuntu-22.04, macos-latest]
 
     steps:
       - name: Checkout code
@@ -60,9 +60,18 @@ jobs:
 
           if [[ "${{ runner.os }}" == "Windows" ]]; then
             mv app/dist/DerivativeZero.exe dist/final/DerivativeZero-Windows.exe
-          else
+
+          elif [[ "${{ runner.os }}" == "Linux" ]]; then
             mv app/dist/DerivativeZero dist/final/DerivativeZero-Linux
             chmod +x dist/final/DerivativeZero-Linux
+
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            # PyInstaller создаёт .app в папке dist
+            mv app/dist/DerivativeZero.app dist/final/DerivativeZero-macOS.app
+            # упакуем в zip (иначе GitHub иногда ломает bundle)
+            cd dist/final
+            zip -r DerivativeZero-macOS.zip DerivativeZero-macOS.app
+            rm -rf DerivativeZero-macOS.app
           fi
 
       - name: Upload artifact
@@ -84,7 +93,7 @@ jobs:
         with:
           path: artifacts
 
-      - name: Show downloaded files (debug)
+      - name: Debug files
         run: ls -R artifacts
 
       - name: Create or Update Release
@@ -97,6 +106,7 @@ jobs:
           files: |
             artifacts/DerivativeZero-Windows/DerivativeZero-Windows.exe
             artifacts/DerivativeZero-Linux/DerivativeZero-Linux
+            artifacts/DerivativeZero-macOS/DerivativeZero-macOS.zip
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
