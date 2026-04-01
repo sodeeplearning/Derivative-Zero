@@ -43,11 +43,17 @@ jobs:
         working-directory: ./app
         shell: bash
         run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            ICON="../docs/images/derivative-zero-icon.icns"
+          else
+            ICON="../docs/images/derivative-zero-icon.ico"
+          fi
+
           pyinstaller \
             --onefile \
             --windowed \
             --name DerivativeZero \
-            --icon=../docs/images/derivative-zero-icon.ico \
+            --icon="$ICON" \
             --clean \
             --hidden-import=PyQt6.sip \
             --hidden-import=PyQt6.QtPrintSupport \
@@ -66,9 +72,7 @@ jobs:
             chmod +x dist/final/DerivativeZero-Linux
 
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            # PyInstaller создаёт .app в папке dist
             mv app/dist/DerivativeZero.app dist/final/DerivativeZero-macOS.app
-            # упакуем в zip (иначе GitHub иногда ломает bundle)
             cd dist/final
             zip -r DerivativeZero-macOS.zip DerivativeZero-macOS.app
             rm -rf DerivativeZero-macOS.app
