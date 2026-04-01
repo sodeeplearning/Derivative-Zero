@@ -49,6 +49,9 @@ jobs:
             ICON="../docs/images/derivative-zero-icon.ico"
           fi
 
+          echo "Using icon: $ICON"
+          ls -l "$ICON"
+
           pyinstaller \
             --onefile \
             --windowed \
@@ -65,17 +68,15 @@ jobs:
           mkdir -p dist/final
 
           if [[ "${{ runner.os }}" == "Windows" ]]; then
-            mv app/dist/DerivativeZero.exe dist/final/DerivativeZero-Windows.exe
+            cp app/dist/DerivativeZero.exe dist/final/DerivativeZero-Windows.exe
 
           elif [[ "${{ runner.os }}" == "Linux" ]]; then
-            mv app/dist/DerivativeZero dist/final/DerivativeZero-Linux
+            cp app/dist/DerivativeZero dist/final/DerivativeZero-Linux
             chmod +x dist/final/DerivativeZero-Linux
 
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            mv app/dist/DerivativeZero.app dist/final/DerivativeZero-macOS.app
-            cd dist/final
-            zip -r DerivativeZero-macOS.zip DerivativeZero-macOS.app
-            rm -rf DerivativeZero-macOS.app
+            cp app/dist/DerivativeZero dist/final/DerivativeZero-macOS
+            chmod +x dist/final/DerivativeZero-macOS
           fi
 
       - name: Upload artifact
@@ -110,7 +111,7 @@ jobs:
           files: |
             artifacts/DerivativeZero-Windows/DerivativeZero-Windows.exe
             artifacts/DerivativeZero-Linux/DerivativeZero-Linux
-            artifacts/DerivativeZero-macOS/DerivativeZero-macOS.zip
+            artifacts/DerivativeZero-macOS/DerivativeZero-macOS
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
