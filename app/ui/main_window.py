@@ -141,7 +141,15 @@ class MainWindow(QMainWindow):
         if sys_prompt:
             self.user_chat.change_system_prompt(sys_prompt)
 
-    def on_agent_settings_changed(self, api_key: str, handler_link: str, model_ai: str = None, model_translator: str = None, model_tts: str = None, system_prompt: str = None):
+    def on_agent_settings_changed(
+            self,
+            api_key: str,
+            handler_link: str,
+            model_ai: str = None,
+            model_translator: str = None,
+            model_tts: str = None,
+            system_prompt: str = None
+    ):
         s = QSettings("ai_pdf_reader", "config")
         s.setValue("openai_api_key", api_key)
         s.setValue("openai_handler", handler_link)
