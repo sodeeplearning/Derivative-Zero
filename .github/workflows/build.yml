@@ -46,11 +46,12 @@ jobs:
           pip install pyinstaller
 
       - name: Build with PyInstaller
+        working-directory: ./app
         run: |
           pyinstaller --onefile \
                       --windowed \
                       --name DerivativeZero \
-                      --icon=docs/images/derivative-zero-icon.ico \
+                      --icon=../docs/images/derivative-zero-icon.ico \
                       --clean \
                       --hidden-import=PyQt6.sip \
                       --hidden-import=PyQt6.QtPrintSupport \
@@ -62,9 +63,9 @@ jobs:
           mkdir -p dist/final
 
           if [[ "${{ runner.os }}" == "Windows" ]]; then
-            mv "dist/DerivativeZero.exe" "dist/final/DerivativeZero-windows.exe"
+            mv "app/dist/DerivativeZero.exe" "dist/final/DerivativeZero-windows.exe"
           else
-            mv "dist/DerivativeZero" "dist/final/DerivativeZero-linux"
+            mv "app/dist/DerivativeZero" "dist/final/DerivativeZero-linux"
             chmod +x "dist/final/DerivativeZero-linux"
           fi
 
