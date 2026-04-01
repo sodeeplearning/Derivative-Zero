@@ -40,6 +40,7 @@ jobs:
 
       - name: Build with PyInstaller
         working-directory: ./app
+        shell: bash
         run: |
           pyinstaller \
             --onefile \
