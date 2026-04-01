@@ -20,6 +20,14 @@ from ui.audio_export_dialog import AudioWorker, AudioProgressDialog, AudioExport
 from ui.chat_widget import ChatWidget
 from ui.pdf_viewer import PdfViewer
 
+from config_defaults import (
+    DEFAULT_OPENAI_HANDLER,
+    DEFAULT_OPENAI_API_KEY,
+    DEFAULT_MODEL_AI,
+    DEFAULT_MODEL_TRANSLATOR,
+    DEFAULT_MODEL_TTS,
+)
+
 
 class MainWindow(QMainWindow):
     translate_result = pyqtSignal(str)
@@ -78,8 +86,20 @@ class MainWindow(QMainWindow):
         self.pdf_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.settings = QSettings("ai_pdf_reader", "config")
-        ai_url = self.settings.value("openai_handler", "http://127.0.0.1:21489")
-        ai_key = self.settings.value("openai_api_key", "")
+
+        if self.settings.value("openai_handler") is None:
+            self.settings.setValue("openai_handler", DEFAULT_OPENAI_HANDLER)
+        if self.settings.value("openai_api_key") is None:
+            self.settings.setValue("openai_api_key", DEFAULT_OPENAI_API_KEY)
+        if self.settings.value("model_ai_consulter") is None:
+            self.settings.setValue("model_ai_consulter", DEFAULT_MODEL_AI)
+        if self.settings.value("model_translator") is None:
+            self.settings.setValue("model_translator", DEFAULT_MODEL_TRANSLATOR)
+        if self.settings.value("model_tts") is None:
+            self.settings.setValue("model_tts", DEFAULT_MODEL_TTS)
+
+        ai_url = self.settings.value("openai_handler")
+        ai_key = self.settings.value("openai_api_key")
 
         self.ai: AIClient = AIClient(ai_url, api_key=ai_key, handler_link=ai_url)
 
@@ -116,14 +136,18 @@ class MainWindow(QMainWindow):
         self.translate_error.connect(self._on_translate_error)
 
         self.chat.agent_settings_changed.connect(self.on_agent_settings_changed)
-
-    def on_agent_settings_changed(self, api_key: str, handler_link: str):
+    def on_agent_settings_changed(self, api_key: str, handler_link: str, model_ai: str = None, model_translator: str = None, model_tts: str = None):
         s = QSettings("ai_pdf_reader", "config")
         s.setValue("openai_api_key", api_key)
         s.setValue("openai_handler", handler_link)
-
+        if model_ai is not None:
+            s.setValue("model_ai_consulter", model_ai)
+        if model_translator is not None:
+            s.setValue("model_translator", model_translator)
+        if model_tts is not None:
+            s.setValue("model_tts", model_tts)
         try:
-            self.ai.update_api_settings(api_key=api_key, handler_link=handler_link)
+            self.ai = AIClient(handler_link, api_key=api_key, handler_link=handler_link)
         except Exception as e:
             print("Failed to update AI client settings:", e)
 
@@ -220,10 +244,12 @@ class MainWindow(QMainWindow):
             user_prompt=question,
             window_context=self.pdf.get_pages_window(),
         )
-
         try:
+            s = QSettings("ai_pdf_reader", "config")
+            model_ai = s.value("model_ai_consulter")
             ai_response = self.ai.ask(
                 chat=self.user_chat.get_chat(),
+                model_name=model_ai,
             )
             self.user_chat.append_assistant_message(ai_response)
             return ai_response
@@ -284,7 +310,9 @@ class MainWindow(QMainWindow):
 
             def _run_translate():
                 try:
-                    result = self.ai.translate_text(page_text)
+                    s = QSettings("ai_pdf_reader", "config")
+                    model_translator = s.value("model_translator")
+                    result = self.ai.translate_text(page_text, model_name=model_translator)
                     result_str = str(result)
                     self.translate_result.emit(result_str)
                 except Exception as e:

@@ -29,14 +29,16 @@ def safe_request(func: Callable) -> Callable:
 
 
 class AIClient:
-    def __init__(self, url, api_key: str = "", handler_link: str = "http://127.0.0.1:21489"):
+    def __init__(
+            self,
+            url,
+            api_key: str = "",
+            handler_link: str = "http://127.0.0.1:21489",
+    ):
         self.url = url
         self.api_key = api_key
         self.handler_link = handler_link
 
-        self._create_processors()
-
-    def _create_processors(self):
         self.ai_consulter = AIConsulterProcessor(api_key=self.api_key, handler_link=self.handler_link)
         self.translator = TranslatorProcessor(api_key=self.api_key, handler_link=self.handler_link)
         self.tts = AsyncTextToSpeechMMLM(api_key=self.api_key, handler_link=self.handler_link)
@@ -44,13 +46,8 @@ class AIClient:
     def set_url(self, url):
         self.url = url
 
-    def update_api_settings(self, api_key: str, handler_link: str):
-        self.api_key = api_key
-        self.handler_link = handler_link
-        self._create_processors()
-
     @safe_request
-    def ask(self, chat: list[dict], model_name: str = "gpt-5.4-mini") -> str:
+    def ask(self, chat: list[dict], model_name: str) -> str:
         payload = AIConsulterInputModel(
             chat=json.dumps(chat),
             model_name=model_name,
@@ -62,8 +59,8 @@ class AIClient:
     def get_speech(
             self,
             texts: str | list[str],
+            model_name: str,
             voice: str = "coral",
-            model_name: str = "gpt-4o-mini-tts",
     ) -> list[str]:
         if isinstance(texts, str):
             texts = [texts]
@@ -80,8 +77,8 @@ class AIClient:
     def translate_text(
             self,
             text: str,
+            model_name: str,
             target_language: str = "ru",
-            model_name: str = "gpt-5.4-nano",
     ) -> str:
         payload = TranslatorInputModel(
             text=text,

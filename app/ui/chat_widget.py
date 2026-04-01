@@ -9,6 +9,14 @@ from PyQt6.QtCore import QSettings, Qt, QThread, pyqtSignal, QObject
 from PyQt6.QtGui import QFont
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 
+from config_defaults import (
+    DEFAULT_OPENAI_HANDLER,
+    DEFAULT_OPENAI_API_KEY,
+    DEFAULT_MODEL_AI,
+    DEFAULT_MODEL_TRANSLATOR,
+    DEFAULT_MODEL_TTS,
+)
+
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -165,7 +173,7 @@ class SendWorker(QObject):
 
 
 class ChatWidget(QWidget):
-    agent_settings_changed = pyqtSignal(str, str)
+    agent_settings_changed = pyqtSignal(str, str, str, str, str)
 
     def __init__(self, on_send, on_clear_chat):
         super().__init__()
@@ -340,10 +348,30 @@ class ChatWidget(QWidget):
         api_key_input = QLineEdit()
         api_key_input.setText(self.settings.value("openai_api_key", ""))
 
+        # Model selection fields
+        model_ai_label = QLabel("AI Consulter model:")
+        model_ai_input = QLineEdit()
+        model_ai_input.setText(self.settings.value("model_ai_consulter", DEFAULT_MODEL_AI))
+
+        model_translator_label = QLabel("Translator model:")
+        model_translator_input = QLineEdit()
+        model_translator_input.setText(self.settings.value("model_translator", DEFAULT_MODEL_TRANSLATOR))
+
+        model_tts_label = QLabel("TTS model:")
+        model_tts_input = QLineEdit()
+        model_tts_input.setText(self.settings.value("model_tts", DEFAULT_MODEL_TTS))
+
         dlg_layout.addWidget(handler_label)
         dlg_layout.addWidget(handler_input)
         dlg_layout.addWidget(api_key_label)
         dlg_layout.addWidget(api_key_input)
+
+        dlg_layout.addWidget(model_ai_label)
+        dlg_layout.addWidget(model_ai_input)
+        dlg_layout.addWidget(model_translator_label)
+        dlg_layout.addWidget(model_translator_input)
+        dlg_layout.addWidget(model_tts_label)
+        dlg_layout.addWidget(model_tts_input)
 
         buttons_layout = QHBoxLayout()
         save_btn = QPushButton("Сохранить")
@@ -355,11 +383,19 @@ class ChatWidget(QWidget):
         dlg_layout.addLayout(buttons_layout)
 
         def on_save():
-            handler = handler_input.text().strip()
-            api_key = api_key_input.text().strip()
+            handler = handler_input.text().strip() or DEFAULT_OPENAI_HANDLER
+            api_key = api_key_input.text().strip() or DEFAULT_OPENAI_API_KEY
+            model_ai = model_ai_input.text().strip() or DEFAULT_MODEL_AI
+            model_translator = model_translator_input.text().strip() or DEFAULT_MODEL_TRANSLATOR
+            model_tts = model_tts_input.text().strip() or DEFAULT_MODEL_TTS
             self.settings.setValue("openai_handler", handler)
             self.settings.setValue("openai_api_key", api_key)
-            self.agent_settings_changed.emit(api_key, handler)
+            self.settings.setValue("model_ai_consulter", model_ai)
+            self.settings.setValue("model_translator", model_translator)
+            self.settings.setValue("model_tts", model_tts)
+
+            self.agent_settings_changed.emit(api_key, handler, model_ai, model_translator, model_tts)
+
             dialog.accept()
 
         save_btn.clicked.connect(on_save)

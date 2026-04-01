@@ -1,0 +1,5 @@
+DEFAULT_OPENAI_HANDLER = "https://api.proxyapi.ru/openai/v1"
+DEFAULT_OPENAI_API_KEY = ""
+DEFAULT_MODEL_AI = "gpt-5.4-mini"
+DEFAULT_MODEL_TRANSLATOR = "gpt-5.4-nano"
+DEFAULT_MODEL_TTS = "gpt-4o-mini-tts"

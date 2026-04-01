@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
     QMessageBox, QProgressBar, QComboBox,
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtCore import QSettings
 
 
 class AudioWorker(QThread):
@@ -23,7 +24,9 @@ class AudioWorker(QThread):
     def run(self):
         try:
             texts = self.pdf.get_all_text(split_by_page=self.opts["split_by_pages"])
-            audio_bytes_list = self.ai.get_speech(texts=texts, voice=self.opts["voice"])
+            s = QSettings("ai_pdf_reader", "config")
+            model_tts = s.value("model_tts")
+            audio_bytes_list = self.ai.get_speech(texts=texts, voice=self.opts["voice"], model_name=model_tts)
 
             zip_path = os.path.join(self.opts["path"], f"{self.opts['archive_name']}.zip")
             with zipfile.ZipFile(zip_path, "w") as archive:
