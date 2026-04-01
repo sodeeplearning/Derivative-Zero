@@ -48,9 +48,7 @@ jobs:
       - name: Build with PyInstaller
         working-directory: ./app
         run: |
-          pyinstaller --onefile \
-                      --windowed \
-                      --name DerivativeZero \
+          pyinstaller --onefile --windowed --name DerivativeZero \
                       --icon=../docs/images/derivative-zero-icon.ico \
                       --clean \
                       --hidden-import=PyQt6.sip \
