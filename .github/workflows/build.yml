@@ -1,8 +1,9 @@
-name: Build DerivativeZero
+name: Build & Release DerivativeZero
 
 on:
   push:
-    branches: [ main ]
+    tags:
+      - 'v*'
 
 jobs:
   build:
@@ -98,16 +99,15 @@ jobs:
         with:
           path: artifacts
 
-      - name: Debug files
+      - name: Show files
         run: ls -R artifacts
 
-      - name: Create or Update Release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          name: Latest Build — DerivativeZero
-          prerelease: true
-          overwrite_files: true
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          prerelease: false
           files: |
             artifacts/DerivativeZero-Windows/DerivativeZero-Windows.exe
             artifacts/DerivativeZero-Linux/DerivativeZero-Linux
