@@ -53,8 +53,9 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}-build
+          name: DerivativeZero-${{ runner.os }}
           path: dist/final/*
+          if-no-files-found: error
 
   release:
     needs: build
@@ -67,8 +68,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+          merge-multiple: false   # каждый артефакт в свою папку
 
-      - name: List downloaded artifacts (для отладки)
+      - name: List all downloaded files (для диагностики)
         run: ls -R artifacts
 
       - name: Delete old "latest" release
@@ -83,8 +85,8 @@ jobs:
           name: Latest Build — DerivativeZero
           prerelease: true
           files: |
-            artifacts/windows-build/DerivativeZero-Windows.exe
-            artifacts/ubuntu-build/DerivativeZero-Linux
+            artifacts/DerivativeZero-Windows-latest/DerivativeZero-Windows.exe
+            artifacts/DerivativeZero-Linux-latest/DerivativeZero-Linux
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
