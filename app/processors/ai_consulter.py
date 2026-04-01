@@ -4,16 +4,15 @@ from openai import AsyncOpenAI
 from .base import BaseAbstractProcessor
 
 from schemas.processors import AIConsulterInputModel, AIConsulterOutputModel
-import config
 
 
 class AIConsulterProcessor(BaseAbstractProcessor):
-    def __init__(self):
+    def __init__(self, api_key: str, handler_link: str):
         super().__init__()
 
         self.client = AsyncOpenAI(
-            api_key=config.Secrets.openrouter_api_key,
-            base_url=config.Links.openrouter_handler,
+            api_key=api_key,
+            base_url=handler_link,
             timeout=600,
         )
 

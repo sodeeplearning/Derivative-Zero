@@ -77,20 +77,15 @@ class MainWindow(QMainWindow):
         self.pdf_label = QLabel("Откройте PDF")
         self.pdf_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.ai: AIClient = AIClient("http://127.0.0.1:21489")
+        self.settings = QSettings("ai_pdf_reader", "config")
+        ai_url = self.settings.value("openai_handler", "http://127.0.0.1:21489")
+        ai_key = self.settings.value("openai_api_key", "")
+
+        self.ai: AIClient = AIClient(ai_url, api_key=ai_key, handler_link=ai_url)
 
         self.viewer = PdfViewer()
         self.viewer.setMinimumWidth(600)
         self.viewer.setMinimumHeight(500)
-
-        self.settings = QSettings("ai_pdf_reader", "config")
-
-        ai_url = self.settings.value(
-            "ai_url",
-            "http://127.0.0.1:21489"
-        )
-
-        self.ai = AIClient(ai_url)
 
         self.user_chat: UserChat = UserChat()
         self.chat = ChatWidget(
@@ -119,6 +114,18 @@ class MainWindow(QMainWindow):
 
         self.translate_result.connect(self._on_translate_finished)
         self.translate_error.connect(self._on_translate_error)
+
+        self.chat.agent_settings_changed.connect(self.on_agent_settings_changed)
+
+    def on_agent_settings_changed(self, api_key: str, handler_link: str):
+        s = QSettings("ai_pdf_reader", "config")
+        s.setValue("openai_api_key", api_key)
+        s.setValue("openai_handler", handler_link)
+
+        try:
+            self.ai.update_api_settings(api_key=api_key, handler_link=handler_link)
+        except Exception as e:
+            print("Failed to update AI client settings:", e)
 
     def closeEvent(self, event):
         self.settings.setValue("geometry", self.saveGeometry())
@@ -273,7 +280,7 @@ class MainWindow(QMainWindow):
 
         try:
             self.translate_btn.setEnabled(False)
-            self.chat.chat.append("<i>Перевод страницы...</i><br><br>")
+            self.chat.append_html("<i>Перевод страницы...</i><br><br>")
 
             def _run_translate():
                 try:
@@ -297,8 +304,7 @@ class MainWindow(QMainWindow):
                 QMessageBox.information(self, "Перевод", f"Сервер вернул пустой ответ:\n{repr(answer)}")
             else:
                 try:
-                    self.chat.chat.append(f"<b>Перевод страницы:</b> {answer}<br><br>")
-                    self.chat.scroll_to_bottom()
+                    self.chat.append_html(f"<b>Перевод страницы:</b> {answer}<br><br>")
                 except Exception as e:
                     QMessageBox.information(
                         self, "Перевод",
@@ -312,8 +318,7 @@ class MainWindow(QMainWindow):
 
     def _on_translate_error(self, err: str):
         try:
-            self.chat.chat.append(f"<b>Ошибка при переводе:</b> {err}<br><br>")
-            self.chat.scroll_to_bottom()
+            self.chat.append_html(f"<b>Ошибка при переводе:</b> {err}<br><br>")
         finally:
             self.translate_btn.setEnabled(True)
             self.translate_worker = None

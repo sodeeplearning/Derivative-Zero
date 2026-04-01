@@ -1,10 +1,6 @@
 pydantic
-dotenv
-python-dotenv
-aiohttp
-fastapi
-uvicorn
+PyMuPDF
+PyQt6
+requests
+pyqt6-webengine
 openai
-markdown
-pymdown-extensions
-loguru

@@ -2,7 +2,7 @@ import re
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLineEdit, QPushButton,
-    QLabel, QHBoxLayout
+    QLabel, QHBoxLayout, QDialog
 )
 from PyQt6.QtWidgets import QSizePolicy
 from PyQt6.QtCore import QSettings, Qt, QThread, pyqtSignal, QObject
@@ -165,6 +165,8 @@ class SendWorker(QObject):
 
 
 class ChatWidget(QWidget):
+    agent_settings_changed = pyqtSignal(str, str)
+
     def __init__(self, on_send, on_clear_chat):
         super().__init__()
 
@@ -211,6 +213,11 @@ class ChatWidget(QWidget):
         self.clear_btn.setMaximumHeight(36)
         self.clear_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         layout.addWidget(self.clear_btn)
+
+        self.agent_settings_btn = QPushButton("Настройки агента")
+        self.agent_settings_btn.setMaximumHeight(32)
+        self.agent_settings_btn.clicked.connect(self.open_agent_settings_dialog)
+        layout.addWidget(self.agent_settings_btn)
 
         self.chat = QWebEngineView()
         self.chat.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -309,3 +316,53 @@ class ChatWidget(QWidget):
         self.on_clear_chat()
         self.messages.clear()
         self.render_chat()
+
+    def append_html(self, html: str):
+        if not html:
+            return
+        self.messages.append(html)
+        self.render_chat()
+        self.scroll_to_bottom()
+
+    def open_agent_settings_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Настройки агента")
+        dialog.setMinimumWidth(600)
+        dialog.resize(600, 200)
+
+        dlg_layout = QVBoxLayout(dialog)
+
+        handler_label = QLabel("OpenAI Handler:")
+        handler_input = QLineEdit()
+        handler_input.setText(self.settings.value("openai_handler", "https://api.openai.com/v1"))
+
+        api_key_label = QLabel("OpenAI API Key:")
+        api_key_input = QLineEdit()
+        api_key_input.setText(self.settings.value("openai_api_key", ""))
+
+        dlg_layout.addWidget(handler_label)
+        dlg_layout.addWidget(handler_input)
+        dlg_layout.addWidget(api_key_label)
+        dlg_layout.addWidget(api_key_input)
+
+        buttons_layout = QHBoxLayout()
+        save_btn = QPushButton("Сохранить")
+        cancel_btn = QPushButton("Отмена")
+        buttons_layout.addStretch()
+        buttons_layout.addWidget(save_btn)
+        buttons_layout.addWidget(cancel_btn)
+
+        dlg_layout.addLayout(buttons_layout)
+
+        def on_save():
+            handler = handler_input.text().strip()
+            api_key = api_key_input.text().strip()
+            self.settings.setValue("openai_handler", handler)
+            self.settings.setValue("openai_api_key", api_key)
+            self.agent_settings_changed.emit(api_key, handler)
+            dialog.accept()
+
+        save_btn.clicked.connect(on_save)
+        cancel_btn.clicked.connect(dialog.reject)
+
+        dialog.exec()

@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-import config
-
 
 class BaseAbstractProcessor(ABC):
     @abstractmethod

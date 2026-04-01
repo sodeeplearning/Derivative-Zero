@@ -1,5 +1,4 @@
 from openai import AsyncOpenAI
-import config
 from .base import BaseAbstractProcessor
 
 from schemas.processors import TranslatorInputModel, TranslatorOutputModel
@@ -7,12 +6,10 @@ from schemas.processors import TranslatorInputModel, TranslatorOutputModel
 
 
 class TranslatorProcessor(BaseAbstractProcessor):
-    def __init__(self):
-        self.model_name = config.AIModels.translator_model
-
+    def __init__(self, api_key: str, handler_link: str):
         self.client = AsyncOpenAI(
-            api_key=config.Secrets.openrouter_api_key,
-            base_url=config.Links.openrouter_handler,
+            api_key=api_key,
+            base_url=handler_link,
             timeout=600,
         )
 
@@ -42,7 +39,7 @@ class TranslatorProcessor(BaseAbstractProcessor):
 
         chat_completion = await self.client.chat.completions.create(
             messages=messages,
-            model=self.model_name,
+            model=body.model_name,
         )
         output = chat_completion.choices[0].message.content
 
