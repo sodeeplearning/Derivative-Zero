@@ -1,0 +1,106 @@
+name: Build DerivativeZero
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-22.04]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install system dependencies (Linux)
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libegl1 \
+            libgl1 \
+            libdbus-1-3 \
+            libxkbcommon-x11-0 \
+            libxcb-cursor0 \
+            libxcb-xinerama0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-shape0 \
+            libxcb-xfixes0
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --onefile \
+                      --windowed \
+                      --name DerivativeZero \
+                      --icon=docs/images/derivative-zero-icon.ico \
+                      --clean \
+                      --hidden-import=PyQt6.sip \
+                      --hidden-import=PyQt6.QtPrintSupport \
+                      main.py
+
+      - name: Prepare artifacts
+        shell: bash
+        run: |
+          mkdir -p dist/final
+
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            mv "dist/DerivativeZero.exe" "dist/final/DerivativeZero-windows.exe"
+          else
+            mv "dist/DerivativeZero" "dist/final/DerivativeZero-linux"
+            chmod +x "dist/final/DerivativeZero-linux"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-build
+          path: dist/final/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Delete old "latest" release (если существует)
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create/Update Latest Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest Build — DerivativeZero
+          prerelease: true
+          files: |
+            artifacts/Windows-build/DerivativeZero-windows.exe
+            artifacts/Ubuntu-build/DerivativeZero-linux
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
