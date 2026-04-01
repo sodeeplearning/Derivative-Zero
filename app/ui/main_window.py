@@ -136,7 +136,12 @@ class MainWindow(QMainWindow):
         self.translate_error.connect(self._on_translate_error)
 
         self.chat.agent_settings_changed.connect(self.on_agent_settings_changed)
-    def on_agent_settings_changed(self, api_key: str, handler_link: str, model_ai: str = None, model_translator: str = None, model_tts: str = None):
+        s = QSettings("ai_pdf_reader", "config")
+        sys_prompt = s.value("ai_consulter_system_prompt")
+        if sys_prompt:
+            self.user_chat.change_system_prompt(sys_prompt)
+
+    def on_agent_settings_changed(self, api_key: str, handler_link: str, model_ai: str = None, model_translator: str = None, model_tts: str = None, system_prompt: str = None):
         s = QSettings("ai_pdf_reader", "config")
         s.setValue("openai_api_key", api_key)
         s.setValue("openai_handler", handler_link)
@@ -146,6 +151,16 @@ class MainWindow(QMainWindow):
             s.setValue("model_translator", model_translator)
         if model_tts is not None:
             s.setValue("model_tts", model_tts)
+
+        if system_prompt is not None:
+            s.setValue("ai_consulter_system_prompt", system_prompt)
+            if hasattr(self, 'user_chat') and self.user_chat:
+                self.user_chat.change_system_prompt(system_prompt)
+        else:
+            sys_prompt = s.value("ai_consulter_system_prompt")
+            if sys_prompt and hasattr(self, 'user_chat') and self.user_chat:
+                self.user_chat.change_system_prompt(sys_prompt)
+
         try:
             self.ai = AIClient(handler_link, api_key=api_key, handler_link=handler_link)
         except Exception as e:

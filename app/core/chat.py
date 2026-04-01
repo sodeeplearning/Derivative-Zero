@@ -1,10 +1,12 @@
-from core.utils import ai_consulter_prompt, image_bytes_to_openrouter_string
+from core.utils import image_bytes_to_openrouter_string
+
+from config_defaults import DEFAULT_AI_CONSULTER_PROMPT
 
 
 class UserChat:
     def __init__(
             self,
-            system_prompt: str = ai_consulter_prompt
+            system_prompt: str = DEFAULT_AI_CONSULTER_PROMPT,
     ):
         self._base_chat = [
             {
@@ -20,6 +22,10 @@ class UserChat:
         self._chat = self._base_chat.copy()
         self._viewed_pages = set()
         self._media_content = dict()
+
+    def change_system_prompt(self, new_prompt):
+        self._base_chat[0]["content"][0]["text"] = new_prompt
+        self._chat[0]["content"][0]["text"] = new_prompt
 
     def clear_chat(self):
         self._chat = self._base_chat.copy()

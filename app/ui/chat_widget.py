@@ -2,7 +2,7 @@ import re
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLineEdit, QPushButton,
-    QLabel, QHBoxLayout, QDialog
+    QLabel, QHBoxLayout, QDialog, QTextEdit
 )
 from PyQt6.QtWidgets import QSizePolicy
 from PyQt6.QtCore import QSettings, Qt, QThread, pyqtSignal, QObject
@@ -15,6 +15,7 @@ from config_defaults import (
     DEFAULT_MODEL_AI,
     DEFAULT_MODEL_TRANSLATOR,
     DEFAULT_MODEL_TTS,
+    DEFAULT_AI_CONSULTER_PROMPT,
 )
 
 
@@ -173,7 +174,7 @@ class SendWorker(QObject):
 
 
 class ChatWidget(QWidget):
-    agent_settings_changed = pyqtSignal(str, str, str, str, str)
+    agent_settings_changed = pyqtSignal(str, str, str, str, str, str)
 
     def __init__(self, on_send, on_clear_chat):
         super().__init__()
@@ -435,6 +436,10 @@ class ChatWidget(QWidget):
         model_tts_input = QLineEdit()
         model_tts_input.setText(self.settings.value("model_tts", DEFAULT_MODEL_TTS))
 
+        system_prompt_label = QLabel("Системный промпт агента:")
+        system_prompt_input = QTextEdit()
+        system_prompt_input.setPlainText(self.settings.value("ai_consulter_system_prompt", DEFAULT_AI_CONSULTER_PROMPT))
+
         dlg_layout.addWidget(handler_label)
         dlg_layout.addWidget(handler_input)
         dlg_layout.addWidget(api_key_label)
@@ -446,11 +451,15 @@ class ChatWidget(QWidget):
         dlg_layout.addWidget(model_translator_input)
         dlg_layout.addWidget(model_tts_label)
         dlg_layout.addWidget(model_tts_input)
+        dlg_layout.addWidget(system_prompt_label)
+        dlg_layout.addWidget(system_prompt_input)
 
         buttons_layout = QHBoxLayout()
+        restore_btn = QPushButton("Восстановить по умолчанию")
         save_btn = QPushButton("Сохранить")
         cancel_btn = QPushButton("Отмена")
         buttons_layout.addStretch()
+        buttons_layout.addWidget(restore_btn)
         buttons_layout.addWidget(save_btn)
         buttons_layout.addWidget(cancel_btn)
 
@@ -467,12 +476,36 @@ class ChatWidget(QWidget):
             self.settings.setValue("model_ai_consulter", model_ai)
             self.settings.setValue("model_translator", model_translator)
             self.settings.setValue("model_tts", model_tts)
+            system_prompt = system_prompt_input.toPlainText().strip() or DEFAULT_AI_CONSULTER_PROMPT
+            self.settings.setValue("ai_consulter_system_prompt", system_prompt)
 
-            self.agent_settings_changed.emit(api_key, handler, model_ai, model_translator, model_tts)
+            self.agent_settings_changed.emit(api_key, handler, model_ai, model_translator, model_tts, system_prompt)
 
             dialog.accept()
 
         save_btn.clicked.connect(on_save)
         cancel_btn.clicked.connect(dialog.reject)
 
+        def on_restore():
+            system_prompt_input.setPlainText(DEFAULT_AI_CONSULTER_PROMPT)
+            self.settings.setValue("ai_consulter_system_prompt", DEFAULT_AI_CONSULTER_PROMPT)
+
+            handler = handler_input.text().strip() or DEFAULT_OPENAI_HANDLER
+            api_key = api_key_input.text().strip() or DEFAULT_OPENAI_API_KEY
+            model_ai = model_ai_input.text().strip() or DEFAULT_MODEL_AI
+            model_translator = model_translator_input.text().strip() or DEFAULT_MODEL_TRANSLATOR
+            model_tts = model_tts_input.text().strip() or DEFAULT_MODEL_TTS
+
+            self.agent_settings_changed.emit(api_key, handler, model_ai, model_translator, model_tts, DEFAULT_AI_CONSULTER_PROMPT)
+
+        restore_btn.clicked.connect(on_restore)
+
+        win_settings = QSettings("ai_pdf_reader", "window")
+        geom = win_settings.value("agent_settings_geometry")
+        if geom:
+            dialog.restoreGeometry(geom)
+
         dialog.exec()
+
+        win_settings = QSettings("ai_pdf_reader", "window")
+        win_settings.setValue("agent_settings_geometry", dialog.saveGeometry())
