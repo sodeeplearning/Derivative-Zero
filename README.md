@@ -7,11 +7,11 @@
 
 ## Desktop приложение
 
-| ОС          | Приложение                                                                                                                          |
-|-------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| **Windows** | [DerivativeZero-windows.exe](https://github.com/sodeeplearning/Derivative-Zero/releases/download/latest/DerivativeZero-windows.exe) |
-| **Linux**   | [DerivativeZero-linux](https://github.com/sodeeplearning/Derivative-Zero/releases/download/latest/DerivativeZero-linux)             |
-| **MacOS**   | [DerivativeZero-macOS](https://github.com/sodeeplearning/Derivative-Zero/releases/download/latest/DerivativeZero-macOS)             |
+| ОС                | Приложение                                                                                                                          |
+|-------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| **Windows (X86)** | [DerivativeZero-windows.exe](https://github.com/sodeeplearning/Derivative-Zero/releases/download/latest/DerivativeZero-windows.exe) |
+| **Linux (AMD64)** | [DerivativeZero-linux](https://github.com/sodeeplearning/Derivative-Zero/releases/download/latest/DerivativeZero-linux)             |
+| **MacOS (ARM)**   | [DerivativeZero-macOS](https://github.com/sodeeplearning/Derivative-Zero/releases/download/latest/DerivativeZero-macOS)             |
 
 После установки приложения не забудьте перейти в ```Настройки агента```
 и добавить ваш ключ к **OpenAI API**. Также есть поддержка любого API, имеющего
