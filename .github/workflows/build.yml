@@ -9,6 +9,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-22.04]
 
@@ -83,20 +84,16 @@ jobs:
         with:
           path: artifacts
 
-      - name: Debug files
+      - name: Show downloaded files (debug)
         run: ls -R artifacts
 
-      - name: Delete old "latest" release
-        run: gh release delete latest --yes --cleanup-tag || true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create/Update Latest Release
+      - name: Create or Update Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           name: Latest Build — DerivativeZero
           prerelease: true
+          overwrite_files: true
           files: |
             artifacts/DerivativeZero-Windows/DerivativeZero-Windows.exe
             artifacts/DerivativeZero-Linux/DerivativeZero-Linux
