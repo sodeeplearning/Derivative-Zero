@@ -191,6 +191,13 @@ class ChatWidget(QWidget):
         self.thinking_index = None
 
         self._build_ui()
+        self._saved_scroll_info = None
+        self._force_scroll_bottom = False
+        self._msg_counter = 0
+        self._scroll_to_msg_id = None
+
+        self.chat.page().loadFinished.connect(self._on_load_finished)
+
         self.render_chat()
 
     def _build_ui(self):
@@ -247,10 +254,27 @@ class ChatWidget(QWidget):
 
     def render_chat(self):
         html = HTML_TEMPLATE.replace("__CONTENT__", "".join(self.messages)).replace("__FONT_SIZE__", str(self.font_size))
-        self.chat.setHtml(html)
-        self.chat.page().runJavaScript(
-            "window.scrollTo(0, document.body.scrollHeight);"
+
+        js = (
+            "(function(){return {scrollTop: window.scrollY || document.documentElement.scrollTop || 0,"
+            " scrollHeight: document.documentElement.scrollHeight || document.body.scrollHeight || 0,"
+            " clientHeight: window.innerHeight || document.documentElement.clientHeight || 0};})();"
         )
+
+        def _got_scroll(info):
+            if info:
+                self._saved_scroll_info = {
+                    'scrollTop': float(info.get('scrollTop', 0)),
+                    'scrollHeight': float(info.get('scrollHeight', 0)),
+                    'clientHeight': float(info.get('clientHeight', 0)),
+                }
+            else:
+                self._saved_scroll_info = None
+
+            self.chat.setHtml(html)
+
+        self.chat.page().runJavaScript(js, _got_scroll)
+
 
     def increase_font(self):
         self.font_size += 1
@@ -269,9 +293,13 @@ class ChatWidget(QWidget):
         self.input.clear()
         self.send_btn.setEnabled(False)
 
+        msg_id = f"msg-{self._msg_counter}"
+        self._msg_counter += 1
         self.messages.append(
-            f'<div class="message"><span class="user">Вы:</span> {msg}</div>'
+            f'<div id="{msg_id}" class="message"><span class="user">Вы:</span> {msg}</div>'
         )
+
+        self._scroll_to_msg_id = msg_id
 
         self.thinking_index = len(self.messages)
         self.messages.append(
@@ -295,9 +323,56 @@ class ChatWidget(QWidget):
         self.thread.start()
 
     def scroll_to_bottom(self):
-        self.chat.page().runJavaScript(
-            "window.scrollTo(0, document.body.scrollHeight);"
+        self._force_scroll_bottom = True
+        self.chat.page().runJavaScript("window.scrollTo(0, document.body.scrollHeight);")
+
+    def _on_load_finished(self, ok: bool):
+        if self._scroll_to_msg_id:
+            mid = self._scroll_to_msg_id
+            self._scroll_to_msg_id = None
+            js = (
+                f"(function(){{var el=document.getElementById('{mid}'); if(el) el.scrollIntoView(true);}})();"
+            )
+            self.chat.page().runJavaScript(js)
+            return
+
+        if self._force_scroll_bottom:
+            self._force_scroll_bottom = False
+            self.chat.page().runJavaScript("window.scrollTo(0, document.body.scrollHeight);")
+            return
+
+        if not self._saved_scroll_info:
+            return
+
+        old_top = int(self._saved_scroll_info.get('scrollTop', 0))
+        old_height = int(self._saved_scroll_info.get('scrollHeight', 0))
+
+        js_new_height = (
+            "(function(){return {scrollHeight: document.documentElement.scrollHeight || document.body.scrollHeight || 0,"
+            " clientHeight: window.innerHeight || document.documentElement.clientHeight || 0};})();"
         )
+
+        def _got_new(info):
+            try:
+                new_height = int(info.get('scrollHeight', 0))
+                client_h = int(info.get('clientHeight', 0))
+            except Exception:
+                new_height = old_height
+                client_h = 0
+
+            delta = new_height - old_height
+            target = old_top + delta
+            max_top = max(0, new_height - client_h)
+            if target < 0:
+                target = 0
+            if target > max_top:
+                target = max_top
+
+            self.chat.page().runJavaScript(f"window.scrollTo(0, {int(target)});")
+
+            self._saved_scroll_info = None
+
+        self.chat.page().runJavaScript(js_new_height, _got_new)
 
     def on_ai_answer(self, answer: str):
         self._remove_thinking()
@@ -348,7 +423,6 @@ class ChatWidget(QWidget):
         api_key_input = QLineEdit()
         api_key_input.setText(self.settings.value("openai_api_key", ""))
 
-        # Model selection fields
         model_ai_label = QLabel("AI Consulter model:")
         model_ai_input = QLineEdit()
         model_ai_input.setText(self.settings.value("model_ai_consulter", DEFAULT_MODEL_AI))
